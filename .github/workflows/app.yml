@@ -1,0 +1,39 @@
+on: push
+
+jobs:
+  setup:
+    name: Choose Secrets Environment Job
+    runs-on: windows-latest
+    steps:
+      - id: setup
+        name: Setup Environment Setp
+        run: |
+          if ('${{ github.ref }}' -eq 'refs/heads/main') { 
+            echo "::set-output name=build_env::prod"
+          } else {
+            echo "::set-output name=build_env::dev"
+          }
+    outputs:
+      build_env: ${{ steps.setup.outputs.build_env }}
+
+  build_deploy:
+    name: Build and Deploy
+    needs: setup
+    environment: ${{ needs.setup.outputs.build_env }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Azure CLI Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.MS_AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Build azure environment
+        id: deploy
+        uses: azure/arm-deploy@v1
+        with:
+          resourceGroupName: ${{ secrets.RESOURCE_GROUP }}-${{ needs.setup.outputs.build_env }}
+          template: ./deployment/deploy.bicep
+          parameters: aadTenantId=${{ secrets.AAD_TENANT_ID }} aadDomain=${{ secrets.AAD_DOMAIN }} aadClientId=${{ secrets.AAD_CLIENT_ID }} aadClientSecret=${{ secrets.AAD_CLIENT_SECRET }} location=${{ secrets.LOCATION }} prefix=${{ secrets.PREFIX }} appEnvironment=${{ needs.setup.outputs.build_env }} branch=${{ github.ref }} sqlPassword=${{ secrets.SQLPASSWORD }}
