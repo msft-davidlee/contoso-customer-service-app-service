@@ -40,7 +40,7 @@ jobs:
           template: ./deployment/deploy.bicep
           parameters: aadTenantId=${{ secrets.AAD_TENANT_ID }} aadDomain=${{ secrets.AAD_DOMAIN }} aadClientId=${{ secrets.AAD_CLIENT_ID }} aadClientSecret=${{ secrets.AAD_CLIENT_SECRET }} location=${{ secrets.LOCATION }} prefix=${{ secrets.PREFIX }} appEnvironment=${{ needs.setup.outputs.build_env }} branch=${{ github.ref }} sqlPassword=${{ secrets.SQLPASSWORD }}
 
-      - id: deploy
+      - id: appsdeploy
         name: Deploy to app services using zip deployment
         run: |
           .\Deployment\Deploy.ps1 -CustomerService ${{ steps.deploy.outputs.cs }} `
