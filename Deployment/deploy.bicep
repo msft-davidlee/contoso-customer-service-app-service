@@ -87,6 +87,15 @@ resource db 'Microsoft.Sql/servers/databases@2021-02-01-preview' = {
   }
 }
 
+resource sqlfw 'Microsoft.Sql/servers/firewallRules@2021-02-01-preview' = {
+  parent: sql
+  name: 'AllowAllMicrosoftAzureIps'
+  properties: {
+    endIpAddress: '0.0.0.0'
+    startIpAddress: '0.0.0.0'
+  }
+}
+
 var sqlConnectionString = 'Data Source=${sql.properties.fullyQualifiedDomainName};Initial Catalog=${dbName}; User Id=${sqlUsername};Password=${sqlPassword}'
 
 // Customer service website
