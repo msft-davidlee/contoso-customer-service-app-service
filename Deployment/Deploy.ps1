@@ -35,4 +35,4 @@ if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to deploy backend."
 }
 
-Invoke-Sqlcmd -InputFile "$AppCode\Db\Migrations.sql" -Database $DbName -Username $SqlUsername -Password $SqlPassword
+Invoke-Sqlcmd -InputFile "$AppCode\Db\Migrations.sql" -ServerInstance $SqlServer -Database $DbName -Username $SqlUsername -Password $SqlPassword
