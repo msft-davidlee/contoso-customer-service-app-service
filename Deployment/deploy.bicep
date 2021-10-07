@@ -184,6 +184,14 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
           name: 'AzureAd:ClientSecret'
           value: aadClientSecret
         }
+        {
+          name: 'AlternateIdServiceUri'
+          value: 'https://${altidapp}.azurewebsites.net'
+        }
+        {
+          name: 'PartnerAPIUri'
+          value: 'https://${partapiapp}.azurewebsites.net'
+        }
       ]
     }
   }
