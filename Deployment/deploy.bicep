@@ -414,10 +414,6 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
           'value': 'dotnet'
         }
         {
-          'name': 'FUNCTIONS_WORKER_RUNTIME'
-          'value': 'dotnet-isolated'
-        }
-        {
           'name': 'FUNCTIONS_EXTENSION_VERSION'
           'value': '~3'
         }
