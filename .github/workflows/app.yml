@@ -21,6 +21,8 @@ jobs:
     needs: setup
     environment: ${{ needs.setup.outputs.build_env }}
     runs-on: windows-latest
+    env:
+      RESOURCE_GROUP_NAME: ${{ secrets.RESOURCE_GROUP }}-${{ needs.setup.outputs.build_env }}
     steps:
       - uses: actions/checkout@v2
 
@@ -34,6 +36,17 @@ jobs:
         id: deploy
         uses: azure/arm-deploy@v1
         with:
-          resourceGroupName: ${{ secrets.RESOURCE_GROUP }}-${{ needs.setup.outputs.build_env }}
+          resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}
           template: ./deployment/deploy.bicep
           parameters: aadTenantId=${{ secrets.AAD_TENANT_ID }} aadDomain=${{ secrets.AAD_DOMAIN }} aadClientId=${{ secrets.AAD_CLIENT_ID }} aadClientSecret=${{ secrets.AAD_CLIENT_SECRET }} location=${{ secrets.LOCATION }} prefix=${{ secrets.PREFIX }} appEnvironment=${{ needs.setup.outputs.build_env }} branch=${{ github.ref }} sqlPassword=${{ secrets.SQLPASSWORD }}
+
+      - id: deploy
+        name: Deploy to app services using zip deployment
+        run: |
+          .\Deployment\Deploy.ps1 -CustomerService ${{ steps.deploy.outputs.cs }} `
+          -AlternateId ${{ steps.deploy.outputs.altid }} `
+          -PartnerApi ${{ steps.deploy.outputs.partapi }} `
+          -Backend ${{ steps.deploy.outputs.backend }} `
+          -CustomerService ${{ steps.deploy.outputs.cs }} `
+          -BuildAccountName ${{ secrets.BUILD_ACCOUNT_NAME }} `
+          -ResourceGroup ${{ env.RESOURCE_GROUP_NAME }}

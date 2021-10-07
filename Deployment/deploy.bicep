@@ -89,10 +89,10 @@ resource db 'Microsoft.Sql/servers/databases@2021-02-01-preview' = {
 
 var sqlConnectionString = 'Data Source=${sql.properties.fullyQualifiedDomainName};Initial Catalog=${dbName}; User Id=${sqlUsername};Password=${sqlPassword}'
 
-// Demo website
-var demoapp = '${stackName}demoapp'
-resource demoappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
-  name: demoapp
+// Customer service website
+var csapp = '${stackName}csapp'
+resource csappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
+  name: csapp
   location: location
   tags: tags
   sku: {
@@ -100,15 +100,15 @@ resource demoappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   }
 }
 
-resource demoappsite 'Microsoft.Web/sites@2021-01-15' = {
-  name: demoapp
+resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
+  name: csapp
   location: location
   tags: tags
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
-    serverFarmId: demoappplan.id
+    serverFarmId: csappplan.id
     siteConfig: {
       windowsFxVersion: 'DOTNETCORE|3.1'
       appSettings: [
@@ -429,3 +429,8 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
     }
   }
 }
+
+output cs string = csapp
+output altid string = altidapp
+output partapi string = partapiapp
+output backend string = backendapp
