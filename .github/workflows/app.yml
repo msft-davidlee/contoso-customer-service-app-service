@@ -47,6 +47,5 @@ jobs:
           -AlternateId ${{ steps.deploy.outputs.altid }} `
           -PartnerApi ${{ steps.deploy.outputs.partapi }} `
           -Backend ${{ steps.deploy.outputs.backend }} `
-          -CustomerService ${{ steps.deploy.outputs.cs }} `
           -BuildAccountName ${{ secrets.BUILD_ACCOUNT_NAME }} `
           -ResourceGroup ${{ env.RESOURCE_GROUP_NAME }}
