@@ -166,7 +166,7 @@ resource demoappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'AzureAd:Instance'
-          value: 'https://login.microsoftonline.com/'
+          value: environment().authentication.loginEndpoint
         }
         {
           name: 'AzureAd:TenantId'
@@ -369,7 +369,7 @@ resource backendappplan 'Microsoft.Web/serverfarms@2020-10-01' = {
   sku: {
     name: 'Y1'
     tier: 'Dynamic'
-  }  
+  }
 }
 
 var backendappConnection = 'DefaultEndpointsProtocol=https;AccountName=${backendappStr.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(backendappStr.id, backendappStr.apiVersion).keys[0].value}'
@@ -408,7 +408,7 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
         {
           'name': 'Connection'
           'value': strConnectionString
-        }        
+        }
         {
           'name': 'FUNCTIONS_WORKER_RUNTIME'
           'value': 'dotnet'
