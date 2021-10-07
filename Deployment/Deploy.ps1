@@ -4,7 +4,12 @@ param(
     [string]$PartnerApi,
     [string]$Backend, 
     [string]$ResourceGroup, 
-    [string]$BuildAccountName)
+    [string]$BuildAccountName,
+    [string]$AppCode,
+    [string]$DbName,
+    [string]$SqlServer,
+    [string]$SqlUsername,
+    [string]$SqlPassword)
 
 $ErrorActionPreference = "Stop"
 
@@ -29,3 +34,5 @@ az functionapp deployment source config-zip -g $ResourceGroup -n $Backend --src 
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to deploy backend."
 }
+
+Invoke-Sqlcmd -InputFile "$AppCode\Db\Migrations.sql" -Database $DbName -Username $SqlUsername -Password $SqlPassword

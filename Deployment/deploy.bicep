@@ -451,3 +451,6 @@ output cs string = csapp
 output altid string = altidapp
 output partapi string = partapiapp
 output backend string = backendapp
+output sqlserver string = sql.properties.fullyQualifiedDomainName
+output sqlusername string = sqlUsername
+output dbname string = dbName

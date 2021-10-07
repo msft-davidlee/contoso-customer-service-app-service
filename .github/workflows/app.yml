@@ -25,6 +25,12 @@ jobs:
       RESOURCE_GROUP_NAME: ${{ secrets.RESOURCE_GROUP }}-${{ needs.setup.outputs.build_env }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          path: main      
+      - uses: actions/checkout@v2
+        with:
+          repository: msft-davidlee/contoso-customer-service-app
+          path: appcode
 
       - name: Azure CLI Login
         uses: azure/login@v1
@@ -48,4 +54,9 @@ jobs:
           -PartnerApi ${{ steps.deploy.outputs.partapi }} `
           -Backend ${{ steps.deploy.outputs.backend }} `
           -BuildAccountName ${{ secrets.BUILD_ACCOUNT_NAME }} `
-          -ResourceGroup ${{ env.RESOURCE_GROUP_NAME }}
+          -ResourceGroup ${{ env.RESOURCE_GROUP_NAME }} `
+          -AppCode appcode `
+          -DbName ${{ steps.deploy.outputs.dbname }} `
+          -SqlServer ${{ steps.deploy.outputs.sqlserver }} `
+          -SqlUsername ${{ steps.deploy.outputs.sqlusername }} `
+          -SqlPassword ${{ secrets.SQLPASSWORD }}
