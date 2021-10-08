@@ -403,7 +403,6 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
     serverFarmId: backendappplan.id
     clientAffinityEnabled: true
     siteConfig: {
-      netFrameworkVersion: 'v3.1'
       webSocketsEnabled: true
       appSettings: [
         {
