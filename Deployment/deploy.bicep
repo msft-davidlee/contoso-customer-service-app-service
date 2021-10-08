@@ -419,6 +419,14 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
           'value': backendappConnection
         }
         {
+          'name': 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+          'value': backendappConnection
+        }
+        {
+          'name': 'WEBSITE_CONTENTSHARE'
+          'value': 'functions2021'
+        }
+        {
           'name': 'QueueName'
           'value': queueName
         }
