@@ -415,6 +415,10 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
           'value': sqlConnectionString
         }
         {
+          'name': 'AzureWebJobsDashboard'
+          'value': backendappConnection
+        }
+        {
           'name': 'AzureWebJobsStorage'
           'value': backendappConnection
         }
