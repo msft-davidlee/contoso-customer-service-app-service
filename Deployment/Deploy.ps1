@@ -14,7 +14,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Shared components are tagged with the stack name of Platform for the environment.
-$platformRes = (az resource list --tag stack-name="platform" | ConvertFrom-Json)
+$platformRes = (az resource list --tag stack-name="platform-v2" | ConvertFrom-Json)
 if (!$platformRes) {
     throw "Unable to find eligible platform resources!"
 }
