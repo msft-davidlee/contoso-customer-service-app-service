@@ -119,7 +119,14 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   properties: {
     serverFarmId: csappplan.id
     siteConfig: {
-      windowsFxVersion: 'DOTNETCORE|3.1'
+      netFrameworkVersion: 'v6.0'
+      #disable-next-line BCP037
+      metadata: [
+        {
+          name: 'CURRENT_STACK'
+          value: 'dotnet'
+        }
+      ]
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -226,7 +233,14 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   properties: {
     serverFarmId: altidappplan.id
     siteConfig: {
-      windowsFxVersion: 'DOTNETCORE|3.1'
+      netFrameworkVersion: 'v6.0'
+      #disable-next-line BCP037
+      metadata: [
+        {
+          name: 'CURRENT_STACK'
+          value: 'dotnet'
+        }
+      ]      
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -297,7 +311,14 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
   properties: {
     serverFarmId: partapiappplan.id
     siteConfig: {
-      windowsFxVersion: 'DOTNETCORE|3.1'
+      netFrameworkVersion: 'v6.0'
+      #disable-next-line BCP037
+      metadata: [
+        {
+          name: 'CURRENT_STACK'
+          value: 'dotnet'
+        }
+      ]      
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -443,7 +464,7 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
         }
         {
           'name': 'FUNCTIONS_EXTENSION_VERSION'
-          'value': '~3'
+          'value': '~4'
         }
         {
           'name': 'ApplicationInsightsAgent_EXTENSION_VERSION'
