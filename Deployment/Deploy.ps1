@@ -3,8 +3,8 @@ param(
     [string]$AlternateId, 
     [string]$PartnerApi,
     [string]$Backend, 
-    [string]$ResourceGroup, 
-    [string]$BuildAccountName,
+    [string]$ResourceGroup,
+    [string]$BUILD_ENV,     
     [string]$AppCode,
     [string]$DbName,
     [string]$SqlServer,
@@ -12,6 +12,21 @@ param(
     [string]$SqlPassword)
 
 $ErrorActionPreference = "Stop"
+
+# Shared components are tagged with the stack name of Platform for the environment.
+$platformRes = (az resource list --tag stack-name="platform" | ConvertFrom-Json)
+if (!$platformRes) {
+    throw "Unable to find eligible platform resources!"
+}
+if ($platformRes.Length -eq 0) {
+    throw "Unable to find 'ANY' eligible platform resources!"
+}
+
+$strs = ($platformRes | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" -and $_.resourceGroup.EndsWith("-$BUILD_ENV") })
+if (!$strs) {
+    throw "Unable to find eligible platform storage account!"
+}
+$BuildAccountName = $strs.name
 
 az storage blob download-batch --destination . -s apps --account-name $BuildAccountName
 
