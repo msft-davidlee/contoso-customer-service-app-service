@@ -53,7 +53,7 @@ jobs:
           -AlternateId ${{ steps.deploy.outputs.altid }} `
           -PartnerApi ${{ steps.deploy.outputs.partapi }} `
           -Backend ${{ steps.deploy.outputs.backend }} `
-          -BuildAccountName ${{ secrets.BUILD_ACCOUNT_NAME }} `
+          -BUILD_ENV ${{ needs.setup.outputs.build_env }} `
           -ResourceGroup ${{ env.RESOURCE_GROUP_NAME }} `
           -AppCode appcode `
           -DbName ${{ steps.deploy.outputs.dbname }} `
