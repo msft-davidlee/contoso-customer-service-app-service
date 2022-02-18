@@ -121,6 +121,7 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   properties: {
     serverFarmId: csappplan.id
     siteConfig: {
+      healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
       #disable-next-line BCP037
       metadata: [
@@ -235,6 +236,7 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   properties: {
     serverFarmId: altidappplan.id
     siteConfig: {
+      healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
       #disable-next-line BCP037
       metadata: [
@@ -313,6 +315,7 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
   properties: {
     serverFarmId: partapiappplan.id
     siteConfig: {
+      healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
       #disable-next-line BCP037
       metadata: [
