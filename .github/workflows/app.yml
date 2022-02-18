@@ -1,4 +1,11 @@
-on: push
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      environmentselector:
+        description: "Environment selector"
+        required: false
+        default: "default"
 
 jobs:
   setup:
@@ -8,10 +15,16 @@ jobs:
       - id: setup
         name: Setup Environment Setp
         run: |
-          if ('${{ github.ref }}' -eq 'refs/heads/main') { 
-            echo "::set-output name=build_env::prod"
+          $envSelector = "${{ github.event.inputs.environmentselector }}"
+          Write-Host "Environment Selector: $envSelector Branch ${{ github.ref }}"
+          if ($envSelector -eq '' -or $envSelector -eq 'default') {            
+            if ('${{ github.ref }}' -eq 'refs/heads/main') { 
+              echo "::set-output name=build_env::prod"              
+            } else {
+              echo "::set-output name=build_env::dev"              
+            }
           } else {
-            echo "::set-output name=build_env::dev"
+            echo "::set-output name=build_env::$envSelector"            
           }
     outputs:
       build_env: ${{ steps.setup.outputs.build_env }}
@@ -21,8 +34,6 @@ jobs:
     needs: setup
     environment: ${{ needs.setup.outputs.build_env }}
     runs-on: windows-latest
-    env:
-      RESOURCE_GROUP_NAME: ${{ secrets.RESOURCE_GROUP }}-${{ needs.setup.outputs.build_env }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -42,9 +53,9 @@ jobs:
         id: deploy
         uses: azure/arm-deploy@v1
         with:
-          resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}
+          resourceGroupName: ${{ secrets.RESOURCE_GROUP }}
           template: ./main/deployment/deploy.bicep
-          parameters: aadTenantId=${{ secrets.AAD_TENANT_ID }} aadDomain=${{ secrets.AAD_DOMAIN }} aadClientId=${{ secrets.AAD_CLIENT_ID }} aadClientSecret=${{ secrets.AAD_CLIENT_SECRET }} location=${{ secrets.LOCATION }} prefix=${{ secrets.PREFIX }} appEnvironment=${{ needs.setup.outputs.build_env }} branch=${{ github.ref }} sqlPassword=${{ secrets.SQLPASSWORD }}
+          parameters: version=${{ github.run_number }} aadTenantId=${{ secrets.AAD_TENANT_ID }} aadDomain=${{ secrets.AAD_DOMAIN }} aadClientId=${{ secrets.AAD_CLIENT_ID }} aadClientSecret=${{ secrets.AAD_CLIENT_SECRET }} prefix=${{ secrets.PREFIX }} appEnvironment=${{ needs.setup.outputs.build_env }} branch=${{ github.ref }} sqlPassword=${{ secrets.SQLPASSWORD }}
 
       - id: appsdeploy
         name: Deploy to app services using zip deployment
@@ -54,7 +65,7 @@ jobs:
           -PartnerApi ${{ steps.deploy.outputs.partapi }} `
           -Backend ${{ steps.deploy.outputs.backend }} `
           -BUILD_ENV ${{ needs.setup.outputs.build_env }} `
-          -ResourceGroup ${{ env.RESOURCE_GROUP_NAME }} `
+          -ResourceGroup ${{ secrets.RESOURCE_GROUP }} `
           -AppCode appcode `
           -DbName ${{ steps.deploy.outputs.dbname }} `
           -SqlServer ${{ steps.deploy.outputs.sqlserver }} `

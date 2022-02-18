@@ -1,7 +1,7 @@
 param prefix string
 param appEnvironment string
 param branch string
-param location string
+param location string = 'centralus'
 @secure()
 param sqlPassword string
 param aadTenantId string
@@ -10,13 +10,14 @@ param aadDomain string
 param aadClientId string
 @secure()
 param aadClientSecret string
+param version string
 
 var stackName = '${prefix}${appEnvironment}'
 var tags = {
   'stack-name': stackName
-  'environment': appEnvironment
-  'branch': branch
-  'team': 'platform'
+  'stack-environment': appEnvironment
+  'stack-version': version
+  'stack-branch': branch
 }
 
 resource appinsights 'Microsoft.Insights/components@2020-02-02' = {
@@ -67,6 +68,7 @@ resource sql 'Microsoft.Sql/servers@2021-02-01-preview' = {
     administratorLogin: sqlUsername
     administratorLoginPassword: sqlPassword
     version: '12.0'
+    minimalTlsVersion: '1.2'
     publicNetworkAccess: 'Enabled'
   }
 }
@@ -97,7 +99,7 @@ resource sqlfw 'Microsoft.Sql/servers/firewallRules@2021-02-01-preview' = {
 }
 
 var sqlConnectionString = 'Data Source=${sql.properties.fullyQualifiedDomainName};Initial Catalog=${dbName}; User Id=${sqlUsername};Password=${sqlPassword}'
-
+var appPlanName = 'B1'
 // Customer service website
 var csapp = '${stackName}csapp'
 resource csappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
@@ -105,7 +107,7 @@ resource csappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   location: location
   tags: tags
   sku: {
-    name: 'F1'
+    name: appPlanName
   }
 }
 
@@ -118,7 +120,9 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   }
   properties: {
     serverFarmId: csappplan.id
+    httpsOnly: true
     siteConfig: {
+      healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
       #disable-next-line BCP037
       metadata: [
@@ -219,7 +223,7 @@ resource altidappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   location: location
   tags: tags
   sku: {
-    name: 'F1'
+    name: appPlanName
   }
 }
 
@@ -232,7 +236,9 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   }
   properties: {
     serverFarmId: altidappplan.id
+    httpsOnly: true
     siteConfig: {
+      healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
       #disable-next-line BCP037
       metadata: [
@@ -240,7 +246,7 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
           name: 'CURRENT_STACK'
           value: 'dotnet'
         }
-      ]      
+      ]
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -297,7 +303,7 @@ resource partapiappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   location: location
   tags: tags
   sku: {
-    name: 'F1'
+    name: appPlanName
   }
 }
 
@@ -310,7 +316,9 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
   }
   properties: {
     serverFarmId: partapiappplan.id
+    httpsOnly: true
     siteConfig: {
+      healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
       #disable-next-line BCP037
       metadata: [
@@ -318,7 +326,7 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
           name: 'CURRENT_STACK'
           value: 'dotnet'
         }
-      ]      
+      ]
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
