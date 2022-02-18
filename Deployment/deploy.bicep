@@ -120,6 +120,7 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   }
   properties: {
     serverFarmId: csappplan.id
+    httpsOnly: true
     siteConfig: {
       healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
@@ -235,6 +236,7 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   }
   properties: {
     serverFarmId: altidappplan.id
+    httpsOnly: true
     siteConfig: {
       healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
@@ -314,6 +316,7 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
   }
   properties: {
     serverFarmId: partapiappplan.id
+    httpsOnly: true
     siteConfig: {
       healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
