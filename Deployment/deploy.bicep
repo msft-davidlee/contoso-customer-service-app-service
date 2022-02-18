@@ -1,7 +1,7 @@
 param prefix string
 param appEnvironment string
 param branch string
-param location string
+param location string = 'centralus'
 @secure()
 param sqlPassword string
 param aadTenantId string
@@ -99,7 +99,7 @@ resource sqlfw 'Microsoft.Sql/servers/firewallRules@2021-02-01-preview' = {
 }
 
 var sqlConnectionString = 'Data Source=${sql.properties.fullyQualifiedDomainName};Initial Catalog=${dbName}; User Id=${sqlUsername};Password=${sqlPassword}'
-
+var appPlanName = 'B1'
 // Customer service website
 var csapp = '${stackName}csapp'
 resource csappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
@@ -107,7 +107,7 @@ resource csappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   location: location
   tags: tags
   sku: {
-    name: 'F1'
+    name: appPlanName
   }
 }
 
@@ -223,7 +223,7 @@ resource altidappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   location: location
   tags: tags
   sku: {
-    name: 'F1'
+    name: appPlanName
   }
 }
 
@@ -303,7 +303,7 @@ resource partapiappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   location: location
   tags: tags
   sku: {
-    name: 'F1'
+    name: appPlanName
   }
 }
 
