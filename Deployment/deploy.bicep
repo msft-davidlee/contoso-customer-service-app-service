@@ -10,13 +10,14 @@ param aadDomain string
 param aadClientId string
 @secure()
 param aadClientSecret string
+param version string
 
 var stackName = '${prefix}${appEnvironment}'
 var tags = {
   'stack-name': stackName
-  'environment': appEnvironment
-  'branch': branch
-  'team': 'platform'
+  'stack-environment': appEnvironment
+  'stack-version': version
+  'stack-branch': branch
 }
 
 resource appinsights 'Microsoft.Insights/components@2020-02-02' = {
@@ -240,7 +241,7 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
           name: 'CURRENT_STACK'
           value: 'dotnet'
         }
-      ]      
+      ]
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -318,7 +319,7 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
           name: 'CURRENT_STACK'
           value: 'dotnet'
         }
-      ]      
+      ]
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
