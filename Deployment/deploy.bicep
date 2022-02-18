@@ -68,6 +68,7 @@ resource sql 'Microsoft.Sql/servers@2021-02-01-preview' = {
     administratorLogin: sqlUsername
     administratorLoginPassword: sqlPassword
     version: '12.0'
+    minimalTlsVersion: '1.2'
     publicNetworkAccess: 'Enabled'
   }
 }
