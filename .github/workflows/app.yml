@@ -67,8 +67,14 @@ jobs:
           -SqlUsername ${{ steps.deploy.outputs.sqlusername }} `
           -SqlPassword ${{ secrets.SQLPASSWORD }}
 
+  cleanup:
+    name: Clean up
+    if: needs.setup.outputs.build_env == 'prod'
+    needs: setup    
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
       - id: removedevresources
         name: Remove Dev Resources
-        if: needs.setup.outputs.build_env == 'prod'
         run: |
           .\Deployment\RemoveDevResources.ps1
