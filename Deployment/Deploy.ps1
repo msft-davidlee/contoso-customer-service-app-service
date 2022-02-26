@@ -34,7 +34,6 @@ if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to download files."
 }
 
-
 az functionapp deployment source config-zip -g $ResourceGroup -n $CustomerService --src "contoso-demo-website-$version.zip"
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to deploy customer service."
