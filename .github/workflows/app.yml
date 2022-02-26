@@ -69,6 +69,6 @@ jobs:
 
       - id: removedevresources
         name: Remove Dev Resources
-        if: ${{ needs.setup.outputs.build_env }} == 'prod'
+        if: needs.setup.outputs.build_env == 'prod'
         run: |
           .\Deployment\RemoveDevResources.ps1
