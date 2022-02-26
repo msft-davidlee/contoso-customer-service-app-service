@@ -29,6 +29,9 @@ if (!$strs) {
 $BuildAccountName = $strs.name
 
 az storage blob download-batch --destination . -s apps --account-name $BuildAccountName
+if ($LastExitCode -ne 0) {
+    throw "An error has occured. Unable to download files."
+}
 
 $version = "v3.1"
 az functionapp deployment source config-zip -g $ResourceGroup -n $CustomerService --src "contoso-demo-website-$version.zip"
