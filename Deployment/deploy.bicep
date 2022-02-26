@@ -14,7 +14,7 @@ param version string
 
 var stackName = '${prefix}${appEnvironment}'
 var tags = {
-  'stack-name': stackName
+  'stack-name': 'contoso-customer-service-app-service'
   'stack-environment': appEnvironment
   'stack-version': version
   'stack-branch': branch
