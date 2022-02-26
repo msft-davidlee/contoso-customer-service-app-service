@@ -66,3 +66,9 @@ jobs:
           -SqlServer ${{ steps.deploy.outputs.sqlserver }} `
           -SqlUsername ${{ steps.deploy.outputs.sqlusername }} `
           -SqlPassword ${{ secrets.SQLPASSWORD }}
+
+      - id: removedevresources
+        name: Remove Dev Resources
+        if: ${{ needs.setup.outputs.build_env }} == 'prod'
+        run: |
+          .\Deployment\RemoveDevResources.ps1
