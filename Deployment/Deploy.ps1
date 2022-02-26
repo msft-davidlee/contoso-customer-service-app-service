@@ -26,8 +26,8 @@ $strs = ($platformRes | Where-Object { $_.type -eq "Microsoft.Storage/storageAcc
 if (!$strs) {
     throw "Unable to find eligible platform storage account!"
 }
-$BuildAccountName = $strs.name
 
+$BuildAccountName = $strs.name
 $version = "v3.1"
 az storage blob download-batch --destination . -s apps --account-name $BuildAccountName --pattern *$version*.zip
 if ($LastExitCode -ne 0) {
