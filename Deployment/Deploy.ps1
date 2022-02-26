@@ -22,7 +22,7 @@ if ($platformRes.Length -eq 0) {
     throw "Unable to find 'ANY' eligible platform resources!"
 }
 
-$strs = ($platformRes | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" -and $_.resourceGroup.EndsWith("-$BUILD_ENV") })
+$strs = ($platformRes | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" })
 if (!$strs) {
     throw "Unable to find eligible platform storage account!"
 }
