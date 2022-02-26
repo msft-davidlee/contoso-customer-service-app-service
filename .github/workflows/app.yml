@@ -38,12 +38,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          path: main      
-      - uses: actions/checkout@v2
-        with:
-          repository: msft-davidlee/contoso-customer-service-app
-          path: appcode
 
       - name: Azure CLI Login
         uses: azure/login@v1
@@ -56,20 +50,31 @@ jobs:
         uses: azure/arm-deploy@v1
         with:
           resourceGroupName: ${{ secrets.RESOURCE_GROUP }}
-          template: ./main/deployment/deploy.bicep
+          template: ./deployment/deploy.bicep
           parameters: version=${{ github.run_number }} aadTenantId=${{ secrets.AAD_TENANT_ID }} aadDomain=${{ secrets.AAD_DOMAIN }} aadClientId=${{ secrets.AAD_CLIENT_ID }} aadClientSecret=${{ secrets.AAD_CLIENT_SECRET }} prefix=${{ secrets.PREFIX }} appEnvironment=${{ needs.setup.outputs.build_env }} branch=${{ github.ref }} sqlPassword=${{ secrets.SQLPASSWORD }}
 
       - id: appsdeploy
         name: Deploy to app services using zip deployment
         run: |
-          .\main\Deployment\Deploy.ps1 -CustomerService ${{ steps.deploy.outputs.cs }} `
+          .\Deployment\Deploy.ps1 -CustomerService ${{ steps.deploy.outputs.cs }} `
           -AlternateId ${{ steps.deploy.outputs.altid }} `
           -PartnerApi ${{ steps.deploy.outputs.partapi }} `
           -Backend ${{ steps.deploy.outputs.backend }} `
           -BUILD_ENV ${{ needs.setup.outputs.build_env }} `
           -ResourceGroup ${{ secrets.RESOURCE_GROUP }} `
-          -AppCode appcode `
           -DbName ${{ steps.deploy.outputs.dbname }} `
           -SqlServer ${{ steps.deploy.outputs.sqlserver }} `
           -SqlUsername ${{ steps.deploy.outputs.sqlusername }} `
           -SqlPassword ${{ secrets.SQLPASSWORD }}
+
+  cleanup:
+    name: Clean up
+    if: needs.setup.outputs.build_env == 'prod'
+    needs: setup    
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - id: removedevresources
+        name: Remove Dev Resources
+        run: |
+          .\Deployment\RemoveDevResources.ps1

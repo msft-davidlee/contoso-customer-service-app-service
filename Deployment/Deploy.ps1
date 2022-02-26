@@ -4,8 +4,7 @@ param(
     [string]$PartnerApi,
     [string]$Backend, 
     [string]$ResourceGroup,
-    [string]$BUILD_ENV,     
-    [string]$AppCode,
+    [string]$BUILD_ENV,         
     [string]$DbName,
     [string]$SqlServer,
     [string]$SqlUsername,
@@ -54,4 +53,5 @@ if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to deploy backend."
 }
 
-Invoke-Sqlcmd -InputFile "$AppCode\Db\Migrations.sql" -ServerInstance $SqlServer -Database $DbName -Username $SqlUsername -Password $SqlPassword
+az storage blob download-batch --destination . -s apps --account-name $BuildAccountName --pattern "Migrations.sql"
+Invoke-Sqlcmd -InputFile "Migrations.sql" -ServerInstance $SqlServer -Database $DbName -Username $SqlUsername -Password $SqlPassword
