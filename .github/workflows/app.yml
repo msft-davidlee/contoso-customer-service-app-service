@@ -74,6 +74,13 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+
+      - name: Azure CLI Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.MS_AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
       - id: removedevresources
         name: Remove Dev Resources
         run: |
