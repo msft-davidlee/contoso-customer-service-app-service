@@ -5,7 +5,7 @@ The information contained in this README.md file and any accompanying materials 
 This project implements the Contoso Customer Service Rewards Lookup & Consumption Application with PaaS service. For more information about this workload, checkout: https://github.com/msft-davidlee/contoso-customer-service-app#readme. 
 
 # Get Started
-To create this, you will need to follow build the application. Follow the guidance on https://github.com/msft-davidlee/contoso-customer-service-app. Next, use your Azure subscription and also a AAD instance that you control and follow the steps below.
+To create this, you will need to follow build the application. The applications are build via a process on the [source repo](https://github.com/msft-davidlee/contoso-customer-service-app) and deploy to [shared services](https://github.com/msft-davidlee/az-internal-shared-services). Please review both as pre-reqs project before proceeding further here. Next, use your Azure subscription and also a AAD instance that you control and follow the steps below.
 
 1. Fork this git repo. See: https://docs.github.com/en/get-started/quickstart/fork-a-repo
 2. Create two resource groups to represent two environments. Suffix each resource group name with either a -dev or -prod. An example could be todo-dev and todo-prod.
