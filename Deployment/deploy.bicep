@@ -194,10 +194,6 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
           value: 'true'
         }
         {
-          name: 'EnableAuth'
-          value: 'true'
-        }
-        {
           name: 'AzureAd:CallbackPath'
           value: '/signin-oidc'
         }
