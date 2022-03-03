@@ -120,6 +120,7 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   tags: tags
   identity: identity
   properties: {
+    keyVaultReferenceIdentity: managedIdentityId
     serverFarmId: csappplan.id
     httpsOnly: true
     siteConfig: {
@@ -246,6 +247,7 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   tags: tags
   identity: identity
   properties: {
+    keyVaultReferenceIdentity: managedIdentityId
     serverFarmId: altidappplan.id
     httpsOnly: true
     siteConfig: {
@@ -336,6 +338,7 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
   tags: tags
   identity: identity
   properties: {
+    keyVaultReferenceIdentity: managedIdentityId
     serverFarmId: partapiappplan.id
     httpsOnly: true
     siteConfig: {
@@ -459,6 +462,7 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
   kind: 'functionapp'
   identity: identity
   properties: {
+    keyVaultReferenceIdentity: managedIdentityId
     httpsOnly: true
     serverFarmId: backendappplan.id
     clientAffinityEnabled: true

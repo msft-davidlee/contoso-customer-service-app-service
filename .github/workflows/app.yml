@@ -55,6 +55,7 @@ jobs:
         id: deploy
         uses: azure/arm-deploy@v1
         with:
+          deploymentName: 'deploy-${{ needs.setup.outputs.build_env }}-${{ github.run_number }}'
           resourceGroupName: ${{ secrets.RESOURCE_GROUP }}
           template: ./deployment/deploy.bicep
           parameters: version=${{ github.run_number }} keyVaultName=${{ steps.resolve-shared-resources.outputs.keyVaultName }} managedIdentityId=${{ steps.resolve-shared-resources.outputs.managedIdentityId }} prefix=${{ secrets.PREFIX }} appEnvironment=${{ needs.setup.outputs.build_env }} branch=${{ github.ref }} sqlPassword=${{ steps.resolve-shared-resources.outputs.sqlPassword }}
