@@ -20,13 +20,7 @@ To create this, you will need to follow build the application. The applications 
 | --- | --- |
 | MS_AZURE_CREDENTIALS | <pre>{<br/>&nbsp;&nbsp;&nbsp;&nbsp;"clientId": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"clientSecret": "", <br/>&nbsp;&nbsp;&nbsp;&nbsp;"subscriptionId": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"tenantId": "" <br/>}</pre> |
 | PREFIX | mytodos - or whatever name you would like for all your resources |
-| RESOURCE_GROUP | todo - or whatever name you give to the resource group |
-| AAD_CLIENT_ID | Client Id |
-| AAD_CLIENT_SECRET | Client Secret |
-| AAD_DOMAIN | replace "something." with the correct domain something.onmicrosoft.com  |
-| AAD_TENANT_ID | Tenant Id |
-| BUILD_ACCOUNT_NAME | Storage Account name in your subscriptions where the zipped version of the files are located. |
-| SQLPASSWORD | SQL password that you want to use |
+| RESOURCE_GROUP | appservice - or whatever name you give to the resource group |
 
 ## Have an issue?
 You are welcome to create an issue if you need help but please note that there is no timeline to answer or resolve any issues you have with the contents of this project. Use the contents of this project at your own risk! If you are interested to volunteer to maintain this, please feel free to reach out to be added as a contributor and send Pull Requests (PR).

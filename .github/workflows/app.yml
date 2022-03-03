@@ -45,13 +45,19 @@ jobs:
           creds: ${{ secrets.MS_AZURE_CREDENTIALS }}
           enable-AzPSSession: true
 
+      - id: resolve-shared-resources
+        name: Resolve shared resources
+        working-directory: .\deployment
+        run: |
+          .\ResolveSharedResources.ps1 -BUILD_ENV ${{ needs.setup.outputs.build_env }} -RESOURCE_GROUP ${{ secrets.RESOURCE_GROUP }}
+
       - name: Build azure environment
         id: deploy
         uses: azure/arm-deploy@v1
         with:
           resourceGroupName: ${{ secrets.RESOURCE_GROUP }}
           template: ./deployment/deploy.bicep
-          parameters: version=${{ github.run_number }} aadTenantId=${{ secrets.AAD_TENANT_ID }} aadDomain=${{ secrets.AAD_DOMAIN }} aadClientId=${{ secrets.AAD_CLIENT_ID }} aadClientSecret=${{ secrets.AAD_CLIENT_SECRET }} prefix=${{ secrets.PREFIX }} appEnvironment=${{ needs.setup.outputs.build_env }} branch=${{ github.ref }} sqlPassword=${{ secrets.SQLPASSWORD }}
+          parameters: version=${{ github.run_number }} keyVaultName=${{ steps.resolve-shared-resources.outputs.keyVaultName }} managedIdentityId=${{ steps.resolve-shared-resources.outputs.managedIdentityId }} prefix=${{ secrets.PREFIX }} appEnvironment=${{ needs.setup.outputs.build_env }} branch=${{ github.ref }} sqlPassword=${{ steps.resolve-shared-resources.outputs.sqlPassword }}
 
       - id: appsdeploy
         name: Deploy to app services using zip deployment
@@ -65,7 +71,7 @@ jobs:
           -DbName ${{ steps.deploy.outputs.dbname }} `
           -SqlServer ${{ steps.deploy.outputs.sqlserver }} `
           -SqlUsername ${{ steps.deploy.outputs.sqlusername }} `
-          -SqlPassword ${{ secrets.SQLPASSWORD }}
+          -SqlPassword ${{ steps.resolve-shared-resources.outputs.sqlPassword }}
 
   cleanup:
     name: Clean up
