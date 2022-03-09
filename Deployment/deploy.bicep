@@ -4,15 +4,19 @@ param branch string
 param location string = 'centralus'
 @secure()
 param sqlPassword string
-param aadTenantId string
-param aadDomain string
-@secure()
-param aadClientId string
-@secure()
-param aadClientSecret string
+param keyVaultName string
+param managedIdentityId string
 param version string
 
 var stackName = '${prefix}${appEnvironment}'
+
+var identity = {
+  type: 'UserAssigned'
+  userAssignedIdentities: {
+    '${managedIdentityId}': {}
+  }
+}
+
 var tags = {
   'stack-name': 'contoso-customer-service-app-service'
   'stack-environment': appEnvironment
@@ -98,7 +102,6 @@ resource sqlfw 'Microsoft.Sql/servers/firewallRules@2021-02-01-preview' = {
   }
 }
 
-var sqlConnectionString = 'Data Source=${sql.properties.fullyQualifiedDomainName};Initial Catalog=${dbName}; User Id=${sqlUsername};Password=${sqlPassword}'
 var appPlanName = 'B1'
 // Customer service website
 var csapp = '${stackName}csapp'
@@ -115,10 +118,9 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: csapp
   location: location
   tags: tags
-  identity: {
-    type: 'SystemAssigned'
-  }
+  identity: identity
   properties: {
+    keyVaultReferenceIdentity: managedIdentityId
     serverFarmId: csappplan.id
     httpsOnly: true
     siteConfig: {
@@ -173,8 +175,20 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
           value: 'Development'
         }
         {
-          name: 'DbConnectionString'
-          value: sqlConnectionString
+          name: 'DbSource'
+          value: sql.properties.fullyQualifiedDomainName
+        }
+        {
+          name: 'DbName'
+          value: dbName
+        }
+        {
+          name: 'DbUserId'
+          value: sqlUsername
+        }
+        {
+          name: 'DbPassword'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
         }
         {
           name: 'EnableAuth'
@@ -190,19 +204,19 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'AzureAd:TenantId'
-          value: aadTenantId
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-tenant-id)'
         }
         {
           name: 'AzureAd:Domain'
-          value: aadDomain
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-domain)'
         }
         {
           name: 'AzureAd:ClientId'
-          value: aadClientId
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-client-id)'
         }
         {
           name: 'AzureAd:ClientSecret'
-          value: aadClientSecret
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-client-secret)'
         }
         {
           name: 'AlternateIdServiceUri'
@@ -231,10 +245,9 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: altidapp
   location: location
   tags: tags
-  identity: {
-    type: 'SystemAssigned'
-  }
+  identity: identity
   properties: {
+    keyVaultReferenceIdentity: managedIdentityId
     serverFarmId: altidappplan.id
     httpsOnly: true
     siteConfig: {
@@ -289,8 +302,20 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
           value: 'Development'
         }
         {
-          name: 'DbConnectionString'
-          value: sqlConnectionString
+          name: 'DbSource'
+          value: sql.properties.fullyQualifiedDomainName
+        }
+        {
+          name: 'DbName'
+          value: dbName
+        }
+        {
+          name: 'DbUserId'
+          value: sqlUsername
+        }
+        {
+          name: 'DbPassword'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
         }
       ]
     }
@@ -311,10 +336,9 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: partapiapp
   location: location
   tags: tags
-  identity: {
-    type: 'SystemAssigned'
-  }
+  identity: identity
   properties: {
+    keyVaultReferenceIdentity: managedIdentityId
     serverFarmId: partapiappplan.id
     httpsOnly: true
     siteConfig: {
@@ -369,8 +393,20 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
           value: 'Development'
         }
         {
-          name: 'DbConnectionString'
-          value: sqlConnectionString
+          name: 'DbSource'
+          value: sql.properties.fullyQualifiedDomainName
+        }
+        {
+          name: 'DbName'
+          value: dbName
+        }
+        {
+          name: 'DbUserId'
+          value: sqlUsername
+        }
+        {
+          name: 'DbPassword'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
         }
         {
           name: 'ShippingRepositoryType'
@@ -424,10 +460,9 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
   location: location
   tags: tags
   kind: 'functionapp'
-  identity: {
-    type: 'SystemAssigned'
-  }
+  identity: identity
   properties: {
+    keyVaultReferenceIdentity: managedIdentityId
     httpsOnly: true
     serverFarmId: backendappplan.id
     clientAffinityEnabled: true
@@ -439,8 +474,20 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
           'value': appinsights.properties.InstrumentationKey
         }
         {
-          'name': 'DbConnectionString'
-          'value': sqlConnectionString
+          name: 'DbSource'
+          value: sql.properties.fullyQualifiedDomainName
+        }
+        {
+          name: 'DbName'
+          value: dbName
+        }
+        {
+          name: 'DbUserId'
+          value: sqlUsername
+        }
+        {
+          name: 'DbPassword'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
         }
         {
           'name': 'AzureWebJobsDashboard'
