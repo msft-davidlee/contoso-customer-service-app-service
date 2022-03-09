@@ -8,6 +8,7 @@ param keyVaultName string
 param managedIdentityId string
 param version string
 param enableAppGateway string
+param subnetId string
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -543,6 +544,22 @@ output sqlserver string = sql.properties.fullyQualifiedDomainName
 output sqlusername string = sqlUsername
 output dbname string = dbName
 
+resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAppGateway == 'true') {
+  name: stackName
+  location: location
+  tags: tags
+  properties: {
+    publicIPAllocationMethod: 'Static'
+    dnsSettings: {
+      domainNameLabel: 'contoso-customer-service-${stackName}'
+    }
+  }
+  sku: {
+    name: 'Standard'
+    tier: 'Regional'
+  }
+}
+
 resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
   name: stackName
   location: location
@@ -551,6 +568,44 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
     sku: {
       name: 'WAF_v2'
       tier: 'WAF_v2'
+    }
+    autoscaleConfiguration: {
+      minCapacity: 1
+      maxCapacity: 2
+    }
+    gatewayIPConfigurations: [
+      {
+        name: 'appGatewayIpConfig'
+        properties: {
+          subnet: {
+            id: subnetId
+          }
+        }
+      }
+    ]
+    frontendIPConfigurations: [
+      {
+        name: 'appGwPublicFrontendIp'
+        properties: {
+          publicIPAddress: {
+            id: appGwIP.id
+          }
+        }
+      }
+    ]
+    frontendPorts: [
+      {
+        name: 'port_80'
+        properties: {
+          port: 80
+        }
+      }
+    ]
+    webApplicationFirewallConfiguration: {
+      enabled: true
+      firewallMode: 'Detection'
+      ruleSetType: 'OWASP'
+      ruleSetVersion: '3.0'
     }
   }
 }

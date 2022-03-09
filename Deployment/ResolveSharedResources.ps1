@@ -35,3 +35,21 @@ if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to get enable-app-gateway flag from $configName."
 }
 Write-Host "::set-output name=enableAppGateway::$enableAppGateway"
+
+$vnet = ($platformRes | Where-Object { $_.type -eq "Microsoft.Network/virtualNetworks" -and $_.name.Contains("-pri-") -and $_.tags.'stack-environment' -eq $BUILD_ENV })
+if (!$vnet) {
+    throw "Unable to find Virtual Network resource!"
+}
+$vnetRg = $vnet.resourceGroup
+$vnetName = $vnet.name
+
+$subnets = (az network vnet subnet list -g $vnetRg --vnet-name $vnetName | ConvertFrom-Json)
+if (!$subnets) {
+    throw "Unable to find eligible Subnets from Virtual Network $vnetName!"
+}          
+$subnetId = ($subnets | Where-Object { $_.name -eq "default" }).id
+if (!$subnetId) {
+    throw "Unable to find default Subnet resource!"
+}
+
+Write-Host "::set-output name=subnetId::$subnetId"

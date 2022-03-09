@@ -67,6 +67,7 @@ jobs:
             branch=${{ github.ref }}
             sqlPassword=${{ steps.resolve-shared-resources.outputs.sqlPassword }}
             enableAppGateway=${{ steps.resolve-shared-resources.outputs.enableAppGateway }}
+            subnetId=${{ steps.resolve-shared-resources.outputs.subnetId }}
 
       - id: appsdeploy
         name: Deploy to app services using zip deployment
