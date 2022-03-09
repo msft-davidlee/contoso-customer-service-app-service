@@ -7,6 +7,7 @@ param sqlPassword string
 param keyVaultName string
 param managedIdentityId string
 param version string
+param enableAppGateway bool
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -541,3 +542,15 @@ output backend string = backendapp
 output sqlserver string = sql.properties.fullyQualifiedDomainName
 output sqlusername string = sqlUsername
 output dbname string = dbName
+
+resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway) {
+  name: stackName
+  location: location
+  tags: tags
+  properties: {
+    sku: {
+      name: 'WAF_v2'
+      tier: 'WAF_v2'
+    }
+  }
+}
