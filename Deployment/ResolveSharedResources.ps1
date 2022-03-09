@@ -23,3 +23,14 @@ Write-Host "::set-output name=managedIdentityId::$mid"
 
 $sqlPassword = (az keyvault secret show -n contoso-customer-service-sql-password --vault-name $kvName --query value | ConvertFrom-Json)
 Write-Host "::set-output name=sqlPassword::$sqlPassword"
+
+$config = ($platformRes | Where-Object { $_.type -eq "Microsoft.AppConfiguration/configurationStores" -and $_.tags.'stack-environment' -eq 'prod' })
+if (!$config) {
+    throw "Unable to find App Config resource!"
+}
+
+$enableAppGateway = az appconfig kv show -n $config.name --key "contoso-customer-service/deployment-flags/enable-app-gateway" --label $BUILD_ENV
+if ($LastExitCode -ne 0) {
+    throw "An error has occured. Unable to get enable-app-gateway flag."
+}
+Write-Host "::set-output name=enableappgateway::$enableAppGateway"
