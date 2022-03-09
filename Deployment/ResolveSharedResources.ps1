@@ -29,8 +29,9 @@ if (!$config) {
     throw "Unable to find App Config resource!"
 }
 
-$enableAppGateway = az appconfig kv show -n $config.name --key "contoso-customer-service/deployment-flags/enable-app-gateway" --label $BUILD_ENV --auth-mode login
+$configName = $config.name
+$enableAppGateway = az appconfig kv show -n $configName --key "contoso-customer-service/deployment-flags/enable-app-gateway" --label $BUILD_ENV --auth-mode login
 if ($LastExitCode -ne 0) {
-    throw "An error has occured. Unable to get enable-app-gateway flag."
+    throw "An error has occured. Unable to get enable-app-gateway flag from $configName."
 }
 Write-Host "::set-output name=enableappgateway::$enableAppGateway"
