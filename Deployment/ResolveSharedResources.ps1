@@ -30,7 +30,7 @@ if (!$config) {
 }
 
 $configName = $config.name
-$enableAppGateway = az appconfig kv show -n $configName --key "contoso-customer-service/deployment-flags/enable-app-gateway" --label $BUILD_ENV --auth-mode login
+$enableAppGateway = (az appconfig kv show -n $configName --key "contoso-customer-service/deployment-flags/enable-app-gateway" --label $BUILD_ENV --auth-mode login | ConvertFrom-Json).value
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to get enable-app-gateway flag from $configName."
 }

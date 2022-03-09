@@ -542,4 +542,15 @@ output backend string = backendapp
 output sqlserver string = sql.properties.fullyQualifiedDomainName
 output sqlusername string = sqlUsername
 output dbname string = dbName
-output p1 string = enableAppGateway
+
+resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
+  name: stackName
+  location: location
+  tags: tags
+  properties: {
+    sku: {
+      name: 'WAF_v2'
+      tier: 'WAF_v2'
+    }
+  }
+}

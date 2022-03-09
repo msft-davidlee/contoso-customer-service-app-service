@@ -59,14 +59,13 @@ jobs:
           resourceGroupName: ${{ secrets.RESOURCE_GROUP }}
           template: ./deployment/deploy.bicep
           parameters: >
-            version=${{ github.run_number }} 
-            keyVaultName=${{ steps.resolve-shared-resources.outputs.keyVaultName }} 
-            managedIdentityId=${{ steps.resolve-shared-resources.outputs.managedIdentityId }} 
+            version=${{ github.run_number }}
+            keyVaultName=${{ steps.resolve-shared-resources.outputs.keyVaultName }}
+            managedIdentityId=${{ steps.resolve-shared-resources.outputs.managedIdentityId }}
             prefix=${{ secrets.PREFIX }}
-            appEnvironment=${{ needs.setup.outputs.build_env }} 
-            branch=${{ github.ref }} 
-            sqlPassword=${{ steps.resolve-shared-resources.outputs.sqlPassword }} 
-            enableAppGateway=${{ steps.resolve-shared-resources.outputs.enableAppGateway }}
+            appEnvironment=${{ needs.setup.outputs.build_env }}
+            branch=${{ github.ref }}
+            sqlPassword=${{ steps.resolve-shared-resources.outputs.sqlPassword }}
 
       - id: appsdeploy
         name: Deploy to app services using zip deployment
