@@ -34,4 +34,4 @@ $enableAppGateway = az appconfig kv show -n $configName --key "contoso-customer-
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to get enable-app-gateway flag from $configName."
 }
-Write-Host "::set-output name=enableappgateway::$enableAppGateway"
+Write-Host "::set-output name=enableAppGateway::$enableAppGateway"
