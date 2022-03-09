@@ -58,7 +58,7 @@ jobs:
           deploymentName: 'deploy-${{ needs.setup.outputs.build_env }}-${{ github.run_number }}'
           resourceGroupName: ${{ secrets.RESOURCE_GROUP }}
           template: ./deployment/deploy.bicep
-          parameters: >
+          parameters: >-
             version=${{ github.run_number }}
             keyVaultName=${{ steps.resolve-shared-resources.outputs.keyVaultName }}
             managedIdentityId=${{ steps.resolve-shared-resources.outputs.managedIdentityId }}
