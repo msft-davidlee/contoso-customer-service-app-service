@@ -66,6 +66,7 @@ jobs:
             appEnvironment=${{ needs.setup.outputs.build_env }}
             branch=${{ github.ref }}
             sqlPassword=${{ steps.resolve-shared-resources.outputs.sqlPassword }}
+            enableAppGateway=${{ steps.resolve-shared-resources.outputs.enableAppGateway }}
 
       - id: appsdeploy
         name: Deploy to app services using zip deployment
