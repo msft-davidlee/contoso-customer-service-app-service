@@ -7,7 +7,7 @@ param sqlPassword string
 param keyVaultName string
 param managedIdentityId string
 param version string
-param enableAppGateway bool
+param enableAppGateway string
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -543,7 +543,7 @@ output sqlserver string = sql.properties.fullyQualifiedDomainName
 output sqlusername string = sqlUsername
 output dbname string = dbName
 
-resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway) {
+resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
   name: stackName
   location: location
   tags: tags
