@@ -228,6 +228,10 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
           name: 'PartnerAPIUri'
           value: 'https://${partapiapp}.azurewebsites.net'
         }
+        {
+          name: 'OverrideAuthRedirectHostName'
+          value: (enableAppGateway == 'true') ? 'https://demo.contoso.com/signin-oidc' : ''
+        }
       ]
     }
   }
