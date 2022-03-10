@@ -560,6 +560,9 @@ resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAp
   }
 }
 
+var csappsiteFqdn = '${csappsite.name}.azurewebsites.net'
+var appGwId = resourceId('Microsoft.Network/applicationGateways', stackName)
+
 resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
   name: stackName
   location: location
@@ -598,6 +601,80 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
         name: 'port_80'
         properties: {
           port: 80
+        }
+      }
+    ]
+    backendAddressPools: [
+      {
+        name: 'customer-service'
+        properties: {
+          backendAddresses: [
+            {
+              fqdn: csappsiteFqdn
+            }
+          ]
+        }
+      }
+    ]
+    backendHttpSettingsCollection: [
+      {
+        name: 'customer-service-app-https-setting'
+        properties: {
+          port: 443
+          protocol: 'Https'
+          cookieBasedAffinity: 'Disabled'
+          hostName: csappsiteFqdn
+          pickHostNameFromBackendAddress: false
+          affinityCookieName: 'ApplicationGatewayAffinity'
+          requestTimeout: 20
+          probe: {
+            id: '${appGwId}/probes/customer-service-app-https-setting-probe'
+          }
+        }
+      }
+    ]
+    httpListeners: [
+      {
+        name: 'customer-service-app'
+        properties: {
+          frontendIPConfiguration: {
+            id: appGwIP.id
+          }
+          frontendPort: {
+            id: '${appGwId}/frontendPorts/port_80'
+          }
+          protocol: 'Http'
+        }
+      }
+    ]
+    requestRoutingRules: [
+      {
+        name: 'frontend-to-customer-service-app'
+        properties: {
+          ruleType: 'Basic'
+          httpListener: {
+            id: '${appGwId}/httpListeners/customer-service-app'
+          }
+          backendAddressPool: {
+            id: '${appGwId}/backendAddressPools/customer-service'
+          }
+          backendHttpSettings: {
+            id: '${appGwId}/backendHttpSettingsCollection/customer-service-app-https-setting'
+          }
+        }
+      }
+    ]
+    probes: [
+      {
+        name: 'customer-service-app-https-setting-probe'
+        properties: {
+          protocol: 'Https'
+          host: csappsiteFqdn
+          path: '/health'
+          interval: 30
+          timeout: 30
+          unhealthyThreshold: 3
+          pickHostNameFromBackendHttpSettings: false
         }
       }
     ]
