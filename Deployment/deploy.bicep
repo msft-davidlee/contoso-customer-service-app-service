@@ -638,7 +638,7 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
         name: 'customer-service-app'
         properties: {
           frontendIPConfiguration: {
-            id: appGwIP.id
+            id: '${appGwId}/frontendIPConfigurations/appGwPublicFrontendIp'
           }
           frontendPort: {
             id: '${appGwId}/frontendPorts/port_80'
