@@ -137,6 +137,17 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
           priority: 200
           name: 'AllowAppGatewaySubnet'
         }
+      ] : (enableFrontdoor == 'true') ? [
+        {
+          ipAddress: 'AzureFrontDoor.Backend'
+          tag: 'ServiceTag'
+          action: 'Allow'
+          priority: 100
+          name: 'AllowFrontdoor'
+          headers: {
+            'x-azure-fdid': frontdoor.properties.frontdoorId
+          }
+        }
       ] : []
       healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
@@ -576,7 +587,7 @@ resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAp
   }
 }
 
-var csappsiteFqdn = '${csappsite.name}.azurewebsites.net'
+var csappsiteFqdn = '${stackName}.azurewebsites.net'
 var appGwId = resourceId('Microsoft.Network/applicationGateways', stackName)
 
 resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
@@ -778,7 +789,7 @@ resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdo
     ]
     routingRules: [
       {
-        name: 'rr'
+        name: 'contoso-customer-app-routing'
         properties: {
           frontendEndpoints: [
             {
