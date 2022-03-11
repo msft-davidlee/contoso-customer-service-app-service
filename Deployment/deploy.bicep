@@ -126,6 +126,17 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
     serverFarmId: csappplan.id
     httpsOnly: true
     siteConfig: {
+      http20Enabled: true
+      minTlsVersion: '1.2'
+      ipSecurityRestrictions: (enableAppGateway == 'true') ? [
+        {
+          vnetSubnetResourceId: subnetId
+          action: 'Allow'
+          tag: 'Default'
+          priority: 200
+          name: 'AllowAppGatewaySubnet'
+        }
+      ] : []
       healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
       #disable-next-line BCP037
