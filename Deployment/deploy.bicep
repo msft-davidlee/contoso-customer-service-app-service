@@ -654,7 +654,7 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
             id: '${appGwId}/frontendIPConfigurations/appGwPublicFrontendIp'
           }
           frontendPort: {
-            id: '${appGwId}/frontendPorts/port_80'
+            id: '${appGwId}/frontendPorts/port_https'
           }
           protocol: 'Https'
           sslCertificate: {
