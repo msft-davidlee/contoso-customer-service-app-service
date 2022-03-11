@@ -611,9 +611,9 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
     ]
     frontendPorts: [
       {
-        name: 'port_80'
+        name: 'port_https'
         properties: {
-          port: 80
+          port: 443
         }
       }
     ]
