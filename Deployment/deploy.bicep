@@ -577,7 +577,7 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
       {
         name: 'appgwcert'
         properties: {
-          keyVaultSecretId: 'https://${keyVaultName}.${environment().suffixes.keyvaultDns}/secrets/appgwcert'
+          keyVaultSecretId: 'https://${keyVaultName}${environment().suffixes.keyvaultDns}/secrets/appgwcert'
         }
       }
     ]
