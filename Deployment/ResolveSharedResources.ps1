@@ -36,6 +36,12 @@ if ($LastExitCode -ne 0) {
 }
 Write-Host "::set-output name=enableAppGateway::$enableAppGateway"
 
+$enableFrontdoor = (az appconfig kv show -n $configName --key "contoso-customer-service-app-service/deployment-flags/enable-frontdoor" --label $BUILD_ENV --auth-mode login | ConvertFrom-Json).value
+if ($LastExitCode -ne 0) {
+    throw "An error has occured. Unable to get enable-frontdoor flag from $configName."
+}
+Write-Host "::set-output name=enableFrontdoor::$enableFrontdoor"
+
 $vnet = ($platformRes | Where-Object { $_.type -eq "Microsoft.Network/virtualNetworks" -and $_.name.Contains("-pri-") -and $_.tags.'stack-environment' -eq $BUILD_ENV })
 if (!$vnet) {
     throw "Unable to find Virtual Network resource!"
