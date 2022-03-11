@@ -25,6 +25,8 @@ After that, in the App Configuration, you will need to configure the follow to e
 | Label | dev or prod |
 | Value | true or false |
 
+Lastly, you will want to update your host file with the IP assigned to the Application Gateway so you can launch https://demo.contoso.com.
+
 ## Secrets
 | Name | Comments |
 | --- | --- |
