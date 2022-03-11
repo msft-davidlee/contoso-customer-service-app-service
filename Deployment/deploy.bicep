@@ -146,7 +146,7 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
           name: 'AllowFrontdoor'
           headers: {
             'x-azure-fdid': [
-              frontdoor.properties.frontdoorId
+              '${frontdoor.properties.frontdoorId}'
             ]
           }
         }
