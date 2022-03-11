@@ -21,7 +21,7 @@ If you are deploying Azure Application Gateway, you will need to generate an SSL
 After that, in the App Configuration, you will need to configure the follow to enable Azure Application Gateway.
 | Name | Comments |
 | --- | --- |
-| Key | contoso-customer-service/deployment-flags/enable-app-gateway |
+| Key | contoso-customer-service-app-service/deployment-flags/enable-app-gateway |
 | Label | dev or prod |
 | Value | true or false |
 
