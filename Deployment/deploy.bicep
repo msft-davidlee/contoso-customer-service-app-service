@@ -9,6 +9,7 @@ param managedIdentityId string
 param version string
 param enableAppGateway string
 param subnetId string
+param enableFrontdoor string
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -136,6 +137,19 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
           priority: 200
           name: 'AllowAppGatewaySubnet'
         }
+      ] : (enableFrontdoor == 'true') ? [
+        {
+          ipAddress: 'AzureFrontDoor.Backend'
+          tag: 'ServiceTag'
+          action: 'Allow'
+          priority: 100
+          name: 'AllowFrontdoor'
+          headers: {
+            'x-azure-fdid': [
+              '${frontdoor.properties.frontdoorId}'
+            ]
+          }
+        }
       ] : []
       healthCheckPath: '/health'
       netFrameworkVersion: 'v6.0'
@@ -241,7 +255,7 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'OverrideAuthRedirectHostName'
-          value: (enableAppGateway == 'true') ? 'https://demo.contoso.com/signin-oidc' : ''
+          value: (enableAppGateway == 'true') ? 'https://demo.contoso.com/signin-oidc' : (enableFrontdoor == 'true') ? 'https://${frontdoorFqdn}/signin-oidc' : ''
         }
       ]
     }
@@ -575,7 +589,7 @@ resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAp
   }
 }
 
-var csappsiteFqdn = '${csappsite.name}.azurewebsites.net'
+var csappsiteFqdn = '${csapp}.azurewebsites.net'
 var appGwId = resourceId('Microsoft.Network/applicationGateways', stackName)
 
 resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
@@ -711,5 +725,95 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
       ruleSetType: 'OWASP'
       ruleSetVersion: '3.0'
     }
+  }
+}
+
+var frontendEndpointName = '${stackName}-azurefd-net'
+var backendPoolName = 'customer-service-backend-pool'
+var frontdoorFqdn = '${stackName}.azurefd.net'
+
+resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdoor == 'true') {
+  name: stackName
+  location: 'global'
+  tags: tags
+  properties: {
+    healthProbeSettings: [
+      {
+        name: 'hp'
+        properties: {
+          healthProbeMethod: 'GET'
+          intervalInSeconds: 30
+          path: '/health'
+          protocol: 'Https'
+        }
+      }
+    ]
+    loadBalancingSettings: [
+      {
+        name: 'lb'
+        properties: {
+          sampleSize: 4
+          successfulSamplesRequired: 2
+          additionalLatencyMilliseconds: 0
+        }
+      }
+    ]
+    frontendEndpoints: [
+      {
+        name: frontendEndpointName
+        properties: {
+          hostName: frontdoorFqdn
+        }
+      }
+    ]
+    backendPools: [
+      {
+        name: backendPoolName
+        properties: {
+          backends: [
+            {
+              address: csappsiteFqdn
+              httpsPort: 443
+              httpPort: 80
+              priority: 1
+              weight: 50
+              backendHostHeader: csappsiteFqdn
+            }
+          ]
+          loadBalancingSettings: {
+            id: resourceId('Microsoft.Network/frontDoors/loadBalancingSettings', stackName, 'lb')
+          }
+          healthProbeSettings: {
+            id: resourceId('Microsoft.Network/frontDoors/healthProbeSettings', stackName, 'hp')
+          }
+        }
+      }
+    ]
+    routingRules: [
+      {
+        name: 'contoso-customer-app-routing'
+        properties: {
+          frontendEndpoints: [
+            {
+              id: resourceId('Microsoft.Network/frontDoors/frontendEndpoints', stackName, frontendEndpointName)
+            }
+          ]
+          acceptedProtocols: [
+            'Https'
+          ]
+          patternsToMatch: [
+            '/*'
+          ]
+          routeConfiguration: {
+            '@odata.type': '#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration'
+            forwardingProtocol: 'HttpsOnly'
+            backendPool: {
+              id: resourceId('Microsoft.Network/frontDoors/backendPools', stackName, backendPoolName)
+            }
+          }
+          enabledState: 'Enabled'
+        }
+      }
+    ]
   }
 }
