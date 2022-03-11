@@ -27,7 +27,7 @@ if (!$strs) {
 }
 
 $BuildAccountName = $strs.name
-$version = "v3.2"
+$version = "v3.3"
 az storage blob download-batch --destination . -s apps --account-name $BuildAccountName --pattern *$version*.zip
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to download files."

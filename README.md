@@ -15,6 +15,16 @@ To create this, you will need to follow build the application. The applications 
 6. Note that the environment suffix of dev or prod will be appened to your resource group but you will have the option to define your own resource prefix.
 7. Create App Registration include the appropriate Urls. See Secrets below.
 
+## Deploying Azure Application Gateway
+If you are deploying Azure Application Gateway, you will need to generate an SSL certifcate for demo.contoso.com. Use the Setup/CreateCert.ps1 to do that. Run that script as an Administrator. Note the password. After that, upload that Cert into Azure Key Vault and also store the password as a secret for your own reference. 
+
+After that, in the App Configuration, you will need to configure the follow to enable Azure Application Gateway.
+| Name | Comments |
+| --- | --- |
+| Key | contoso-customer-service-app-service/deployment-flags/enable-app-gateway |
+| Label | dev or prod |
+| Value | true or false |
+
 ## Secrets
 | Name | Comments |
 | --- | --- |
