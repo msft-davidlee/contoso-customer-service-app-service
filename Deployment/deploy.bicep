@@ -571,7 +571,16 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
   name: stackName
   location: location
   tags: tags
+  identity: identity
   properties: {
+    sslCertificates: [
+      {
+        name: 'appgwcert'
+        properties: {
+          keyVaultSecretId: 'https://${keyVaultName}.${environment().suffixes.keyvaultDns}/secrets/appgwcert'
+        }
+      }
+    ]
     sku: {
       name: 'WAF_v2'
       tier: 'WAF_v2'
