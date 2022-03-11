@@ -760,6 +760,7 @@ resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdo
             {
               address: csappsiteFqdn
               httpsPort: 443
+              httpPort: 80
               priority: 1
               weight: 50
               backendHostHeader: '${stackName}.azurefd.net'
