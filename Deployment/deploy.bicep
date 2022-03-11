@@ -792,7 +792,7 @@ resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdo
           ]
           routeConfiguration: {
             '@odata.type': '#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration'
-            forwardingProtocol: 'HttpOnly'
+            forwardingProtocol: 'HttpsOnly'
             backendPool: {
               id: resourceId('Microsoft.Network/frontDoors/backendPools', stackName, backendPoolName)
             }
