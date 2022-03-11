@@ -589,7 +589,7 @@ resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAp
   }
 }
 
-var csappsiteFqdn = '${stackName}.azurewebsites.net'
+var csappsiteFqdn = '${csapp}.azurewebsites.net'
 var appGwId = resourceId('Microsoft.Network/applicationGateways', stackName)
 
 resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
