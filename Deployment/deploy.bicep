@@ -242,7 +242,7 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'OverrideAuthRedirectHostName'
-          value: (enableAppGateway == 'true') ? 'https://demo.contoso.com/signin-oidc' : ''
+          value: (enableAppGateway == 'true') ? 'https://demo.contoso.com/signin-oidc' : (enableFrontdoor == 'true') ? 'https://${frontdoorFqdn}/signin-oidc' : ''
         }
       ]
     }
@@ -717,6 +717,7 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
 
 var frontendEndpointName = '${stackName}-azurefd-net'
 var backendPoolName = 'customer-service-backend-pool'
+var frontdoorFqdn = '${stackName}.azurefd.net'
 
 resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdoor == 'true') {
   name: stackName
@@ -748,7 +749,7 @@ resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdo
       {
         name: frontendEndpointName
         properties: {
-          hostName: '${stackName}.azurefd.net'
+          hostName: frontdoorFqdn
         }
       }
     ]
@@ -763,7 +764,7 @@ resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdo
               httpPort: 80
               priority: 1
               weight: 50
-              backendHostHeader: '${stackName}.azurefd.net'
+              backendHostHeader: csappsiteFqdn
             }
           ]
           loadBalancingSettings: {
