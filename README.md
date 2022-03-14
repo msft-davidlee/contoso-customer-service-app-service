@@ -19,6 +19,7 @@ To create this, you will need to follow build the application. The applications 
 If you are deploying Azure Application Gateway, you will need to generate an SSL certifcate for demo.contoso.com. Use the Setup/CreateCert.ps1 to do that. Run that script as an Administrator. Note the password. After that, upload that Cert into Azure Key Vault and also store the password as a secret for your own reference. 
 
 After that, in the App Configuration, you will need to configure the follow to enable Azure Application Gateway.
+
 | Name | Comments |
 | --- | --- |
 | Key | contoso-customer-service-app-service/deployment-flags/enable-app-gateway |
@@ -26,6 +27,20 @@ After that, in the App Configuration, you will need to configure the follow to e
 | Value | true or false |
 
 Lastly, you will want to update your host file with the IP assigned to the Application Gateway so you can launch https://demo.contoso.com.
+
+## Deploying Frontdoor
+If you are deploying Frontdoor. Frontdoor by already has its domain name with SSL cert and that's what we will be using. 
+
+After that, in the App Configuration, you will need to configure the follow to enable Frontdoor.
+
+| Name | Comments |
+| --- | --- |
+| Key | contoso-customer-service-app-service/deployment-flags/enable-frontdoor |
+| Label | dev or prod |
+| Value | true or false |
+
+## AAD App Registration
+Whether you are using Azure Application Gateway or Frontdoor, be sure to register the URLs so that the redirects can happen correctly, otherwise you will get an error from AAD sign-on page.
 
 ## Secrets
 | Name | Comments |
