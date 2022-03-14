@@ -10,6 +10,7 @@ param version string
 param enableAppGateway string
 param subnetId string
 param enableFrontdoor string
+param enableAPIM string
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -814,6 +815,38 @@ resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdo
           enabledState: 'Enabled'
         }
       }
+    ]
+  }
+}
+
+resource apim 'Microsoft.ApiManagement/service@2021-01-01-preview' = if (enableAPIM == 'true') {
+  name: stackName
+  location: location
+  tags: tags
+  sku: {
+    name: 'Developer'
+    capacity: 1
+  }
+  properties: {
+    publisherEmail: 'api@contoso.com'
+    publisherName: 'Contoso'
+  }
+}
+resource rewardsapi 'Microsoft.ApiManagement/service/apis@2021-04-01-preview' = if (enableAPIM == 'true') {
+  parent: apim
+  name: 'rewards-api'
+  properties: {
+    subscriptionRequired: true
+    subscriptionKeyParameterNames: {
+      header: 'Ocp-Apim-Subscription-Key'
+      query: 'subscription-key'
+    }
+    apiRevision: '1'
+    isCurrent: true
+    displayName: 'Rewards API'
+    path: 'rewards'
+    protocols: [
+      'https'
     ]
   }
 }
