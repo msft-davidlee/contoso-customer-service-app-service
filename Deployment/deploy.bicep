@@ -247,7 +247,7 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-client-secret)'
         }
         {
-          name: 'AzureAd:Scope'
+          name: 'AzureAd:Scopes'
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-scope)'
         }
         {
@@ -356,6 +356,26 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
         {
           name: 'DbPassword'
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
+        }
+        {
+          name: 'AzureAd:Instance'
+          value: environment().authentication.loginEndpoint
+        }
+        {
+          name: 'AzureAd:TenantId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-tenant-id)'
+        }
+        {
+          name: 'AzureAd:Domain'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-domain)'
+        }
+        {
+          name: 'AzureAd:ClientId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-client-id)'
+        }
+        {
+          name: 'AzureAd:Audience'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-audience)'
         }
       ]
     }
