@@ -2,8 +2,7 @@ param prefix string
 param appEnvironment string
 param branch string
 param location string = 'centralus'
-@secure()
-param sqlPassword string
+param keyVaultId string
 param keyVaultName string
 param managedIdentityId string
 param version string
@@ -67,6 +66,14 @@ resource strqueuename 'Microsoft.Storage/storageAccounts/queueServices/queues@20
 }
 
 var sqlUsername = 'app'
+var sqlPassword = {
+  reference: {
+    keyVault: {
+      id: keyVaultId
+    }
+    secretName: 'contoso-customer-service-sql-password'
+  }
+}
 
 resource sql 'Microsoft.Sql/servers@2021-02-01-preview' = {
   name: stackName

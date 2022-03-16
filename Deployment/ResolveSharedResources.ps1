@@ -17,12 +17,16 @@ if (!$kv) {
 $kvName = $kv.name
 Write-Host "::set-output name=keyVaultName::$kvName"
 
-# Also resolve managed identity to use
-$mid = (az identity list -g appservice-dev | ConvertFrom-Json).id
-Write-Host "::set-output name=managedIdentityId::$mid"
+# https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/template-tutorial-use-key-vault
+$keyVaultId = $kv.id
+Write-Host "::set-output name=keyVaultId::$keyVaultId"
 
 $sqlPassword = (az keyvault secret show -n contoso-customer-service-sql-password --vault-name $kvName --query value | ConvertFrom-Json)
 Write-Host "::set-output name=sqlPassword::$sqlPassword"
+
+# Also resolve managed identity to use
+$mid = (az identity list -g appservice-dev | ConvertFrom-Json).id
+Write-Host "::set-output name=managedIdentityId::$mid"
 
 $config = ($platformRes | Where-Object { $_.type -eq "Microsoft.AppConfiguration/configurationStores" -and $_.tags.'stack-environment' -eq 'prod' })
 if (!$config) {
