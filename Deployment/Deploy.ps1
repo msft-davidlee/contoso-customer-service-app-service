@@ -64,6 +64,7 @@ if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to deploy backend."
 }
 
+# Deploy specfic version of SQL script
 $sqlFile = "Migrations-$version.sql"
 az storage blob download-batch --destination . -s apps --account-name $BuildAccountName --pattern $sqlFile
 Invoke-Sqlcmd -InputFile $sqlFile -ServerInstance $SqlServer -Database $DbName -Username $SqlUsername -Password $SqlPassword
