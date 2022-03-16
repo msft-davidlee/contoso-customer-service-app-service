@@ -2,6 +2,7 @@ param(
     [string]$CustomerService, 
     [string]$AlternateId, 
     [string]$PartnerApi,
+    [string]$MemberServiceApi,
     [string]$Backend, 
     [string]$ResourceGroup,
     [string]$BUILD_ENV,         
@@ -27,31 +28,41 @@ if (!$strs) {
 }
 
 $BuildAccountName = $strs.name
-$version = "v3.3"
+
+# The version here can be configurable so we can also pull dev specific packages.
+$version = "v4.0-dev"
+
 az storage blob download-batch --destination . -s apps --account-name $BuildAccountName --pattern *$version*.zip
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to download files."
 }
 
-az functionapp deployment source config-zip -g $ResourceGroup -n $CustomerService --src "contoso-demo-website-$version.zip"
+$namePrefix = "contoso-demo"
+
+az functionapp deployment source config-zip -g $ResourceGroup -n $CustomerService --src "$namePrefix-website-$version.zip"
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to deploy customer service."
 }
 
-az functionapp deployment source config-zip -g $ResourceGroup -n $AlternateId --src "contoso-demo-alternate-id-service-$version.zip"
+az functionapp deployment source config-zip -g $ResourceGroup -n $AlternateId --src "$namePrefix-alternate-id-service-$version.zip"
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to deploy alternate id."
 }
 
-az functionapp deployment source config-zip -g $ResourceGroup -n $PartnerApi --src "contoso-demo-partner-api-$version.zip"
+az functionapp deployment source config-zip -g $ResourceGroup -n $MemberServiceApi --src "$namePrefix-member-service-$version.zip"
+if ($LastExitCode -ne 0) {
+    throw "An error has occured. Unable to deploy alternate id."
+}
+
+az functionapp deployment source config-zip -g $ResourceGroup -n $PartnerApi --src "$namePrefix-partner-api-$version.zip"
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to deploy partner api."
 }
 
-az functionapp deployment source config-zip -g $ResourceGroup -n $Backend --src "contoso-demo-storage-queue-func-$version.zip"
+az functionapp deployment source config-zip -g $ResourceGroup -n $Backend --src "$namePrefix-storage-queue-func-$version.zip"
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to deploy backend."
 }
 
-az storage blob download-batch --destination . -s apps --account-name $BuildAccountName --pattern "Migrations.sql"
+az storage blob download-batch --destination . -s apps --account-name $BuildAccountName --pattern "Migrations-$version.sql"
 Invoke-Sqlcmd -InputFile "Migrations.sql" -ServerInstance $SqlServer -Database $DbName -Username $SqlUsername -Password $SqlPassword

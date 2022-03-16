@@ -77,6 +77,7 @@ jobs:
           .\Deployment\Deploy.ps1 -CustomerService ${{ steps.deploy.outputs.cs }} `
           -AlternateId ${{ steps.deploy.outputs.altid }} `
           -PartnerApi ${{ steps.deploy.outputs.partapi }} `
+          -MemberServiceApi ${{ steps.deploy.outputs.membersvc }} `
           -Backend ${{ steps.deploy.outputs.backend }} `
           -BUILD_ENV ${{ needs.setup.outputs.build_env }} `
           -ResourceGroup ${{ secrets.RESOURCE_GROUP }} `

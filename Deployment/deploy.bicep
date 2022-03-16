@@ -247,12 +247,20 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-client-secret)'
         }
         {
+          name: 'AzureAd:Scope'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-scope)'
+        }
+        {
           name: 'AlternateIdServiceUri'
           value: 'https://${altidapp}.azurewebsites.net'
         }
         {
           name: 'PartnerAPIUri'
           value: 'https://${partapiapp}.azurewebsites.net'
+        }
+        {
+          name: 'MemberServiceUri'
+          value: 'https://${membersvcapp}.azurewebsites.net'
         }
         {
           name: 'OverrideAuthRedirectHostName'
@@ -348,6 +356,117 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
         {
           name: 'DbPassword'
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
+        }
+      ]
+    }
+  }
+}
+
+var membersvcapp = '${stackName}membersvcapp'
+resource membersvcappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
+  name: membersvcapp
+  location: location
+  tags: tags
+  sku: {
+    name: appPlanName
+  }
+}
+
+resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
+  name: membersvcapp
+  location: location
+  tags: tags
+  identity: identity
+  properties: {
+    keyVaultReferenceIdentity: managedIdentityId
+    serverFarmId: membersvcappplan.id
+    httpsOnly: true
+    siteConfig: {
+      healthCheckPath: '/health'
+      netFrameworkVersion: 'v6.0'
+      #disable-next-line BCP037
+      metadata: [
+        {
+          name: 'CURRENT_STACK'
+          value: 'dotnet'
+        }
+      ]
+      appSettings: [
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appinsights.properties.InstrumentationKey
+        }
+        {
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~2'
+        }
+        {
+          name: 'XDT_MicrosoftApplicationInsights_Mode'
+          value: 'recommended'
+        }
+        {
+          name: 'DiagnosticServices_EXTENSION_VERSION'
+          value: '~3'
+        }
+        {
+          name: 'APPINSIGHTS_PROFILERFEATURE_VERSION'
+          value: 'disabled'
+        }
+        {
+          name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION'
+          value: '1.0.0'
+        }
+        {
+          name: 'InstrumentationEngine_EXTENSION_VERSION'
+          value: '~1'
+        }
+        {
+          name: 'SnapshotDebugger_EXTENSION_VERSION'
+          value: 'disabled'
+        }
+        {
+          name: 'XDT_MicrosoftApplicationInsights_BaseExtensions'
+          value: '~1'
+        }
+        {
+          name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Development'
+        }
+        {
+          name: 'DbSource'
+          value: sql.properties.fullyQualifiedDomainName
+        }
+        {
+          name: 'DbName'
+          value: dbName
+        }
+        {
+          name: 'DbUserId'
+          value: sqlUsername
+        }
+        {
+          name: 'DbPassword'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
+        }
+        {
+          name: 'AzureAd:Instance'
+          value: environment().authentication.loginEndpoint
+        }
+        {
+          name: 'AzureAd:TenantId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-tenant-id)'
+        }
+        {
+          name: 'AzureAd:Domain'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-domain)'
+        }
+        {
+          name: 'AzureAd:ClientId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-client-id)'
+        }
+        {
+          name: 'AzureAd:Audience'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-audience)'
         }
       ]
     }
@@ -569,6 +688,7 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
 output cs string = csapp
 output altid string = altidapp
 output partapi string = partapiapp
+output membersvc string = membersvcapp
 output backend string = backendapp
 output sqlserver string = sql.properties.fullyQualifiedDomainName
 output sqlusername string = sqlUsername
@@ -819,34 +939,34 @@ resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdo
   }
 }
 
-resource apim 'Microsoft.ApiManagement/service@2021-01-01-preview' = if (enableAPIM == 'true') {
-  name: stackName
-  location: location
-  tags: tags
-  sku: {
-    name: 'Developer'
-    capacity: 1
-  }
-  properties: {
-    publisherEmail: 'api@contoso.com'
-    publisherName: 'Contoso'
-  }
-}
-resource rewardsapi 'Microsoft.ApiManagement/service/apis@2021-04-01-preview' = if (enableAPIM == 'true') {
-  parent: apim
-  name: 'rewards-api'
-  properties: {
-    subscriptionRequired: true
-    subscriptionKeyParameterNames: {
-      header: 'Ocp-Apim-Subscription-Key'
-      query: 'subscription-key'
-    }
-    apiRevision: '1'
-    isCurrent: true
-    displayName: 'Rewards API'
-    path: 'rewards'
-    protocols: [
-      'https'
-    ]
-  }
-}
+// resource apim 'Microsoft.ApiManagement/service@2021-01-01-preview' = if (enableAPIM == 'true') {
+//   name: stackName
+//   location: location
+//   tags: tags
+//   sku: {
+//     name: 'Developer'
+//     capacity: 1
+//   }
+//   properties: {
+//     publisherEmail: 'api@contoso.com'
+//     publisherName: 'Contoso'
+//   }
+// }
+// resource rewardsapi 'Microsoft.ApiManagement/service/apis@2021-04-01-preview' = if (enableAPIM == 'true') {
+//   parent: apim
+//   name: 'rewards-api'
+//   properties: {
+//     subscriptionRequired: true
+//     subscriptionKeyParameterNames: {
+//       header: 'Ocp-Apim-Subscription-Key'
+//       query: 'subscription-key'
+//     }
+//     apiRevision: '1'
+//     isCurrent: true
+//     displayName: 'Rewards API'
+//     path: 'rewards'
+//     protocols: [
+//       'https'
+//     ]
+//   }
+// }
