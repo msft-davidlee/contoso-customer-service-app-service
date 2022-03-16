@@ -2,7 +2,7 @@ param prefix string
 param appEnvironment string
 param branch string
 param location string = 'centralus'
-param keyVaultId string
+param kvResourceGroup string
 param keyVaultName string
 param managedIdentityId string
 param version string
@@ -66,50 +66,21 @@ resource strqueuename 'Microsoft.Storage/storageAccounts/queueServices/queues@20
 }
 
 var sqlUsername = 'app'
-var sqlPassword = {
-  reference: {
-    keyVault: {
-      id: keyVaultId
-    }
-    secretName: 'contoso-customer-service-sql-password'
-  }
+
+//https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/key-vault-parameter?tabs=azure-cli#use-getsecret-function
+
+resource kv 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
+  name: keyVaultName
+  scope: resourceGroup(subscription().subscriptionId, kvResourceGroup)
 }
 
-resource sql 'Microsoft.Sql/servers@2021-02-01-preview' = {
-  name: stackName
-  location: location
-  tags: tags
-  properties: {
-    administratorLogin: sqlUsername
-    administratorLoginPassword: sqlPassword
-    version: '12.0'
-    minimalTlsVersion: '1.2'
-    publicNetworkAccess: 'Enabled'
-  }
-}
-
-var dbName = 'app'
-resource db 'Microsoft.Sql/servers/databases@2021-02-01-preview' = {
-  name: dbName
-  parent: sql
-  location: location
-  tags: tags
-  sku: {
-    name: 'Basic'
-    tier: 'Basic'
-    capacity: 5
-  }
-  properties: {
-    collation: 'SQL_Latin1_General_CP1_CI_AS'
-  }
-}
-
-resource sqlfw 'Microsoft.Sql/servers/firewallRules@2021-02-01-preview' = {
-  parent: sql
-  name: 'AllowAllMicrosoftAzureIps'
-  properties: {
-    endIpAddress: '0.0.0.0'
-    startIpAddress: '0.0.0.0'
+module sql './sql.bicep' = {
+  name: 'deploySQL'
+  params: {
+    stackName: stackName
+    sqlPassword: kv.getSecret('contoso-customer-service-sql-password')
+    tags: tags
+    location: location
   }
 }
 
@@ -211,11 +182,11 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'DbSource'
-          value: sql.properties.fullyQualifiedDomainName
+          value: sql.outputs.sqlFqdn
         }
         {
           name: 'DbName'
-          value: dbName
+          value: sql.outputs.dbName
         }
         {
           name: 'DbUserId'
@@ -350,11 +321,11 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'DbSource'
-          value: sql.properties.fullyQualifiedDomainName
+          value: sql.outputs.sqlFqdn
         }
         {
           name: 'DbName'
-          value: dbName
+          value: sql.outputs.dbName
         }
         {
           name: 'DbUserId'
@@ -461,11 +432,11 @@ resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'DbSource'
-          value: sql.properties.fullyQualifiedDomainName
+          value: sql.outputs.sqlFqdn
         }
         {
           name: 'DbName'
-          value: dbName
+          value: sql.outputs.dbName
         }
         {
           name: 'DbUserId'
@@ -572,11 +543,11 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'DbSource'
-          value: sql.properties.fullyQualifiedDomainName
+          value: sql.outputs.sqlFqdn
         }
         {
           name: 'DbName'
-          value: dbName
+          value: sql.outputs.dbName
         }
         {
           name: 'DbUserId'
@@ -653,11 +624,11 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
         }
         {
           name: 'DbSource'
-          value: sql.properties.fullyQualifiedDomainName
+          value: sql.outputs.sqlFqdn
         }
         {
           name: 'DbName'
-          value: dbName
+          value: sql.outputs.dbName
         }
         {
           name: 'DbUserId'
@@ -717,9 +688,9 @@ output altid string = altidapp
 output partapi string = partapiapp
 output membersvc string = membersvcapp
 output backend string = backendapp
-output sqlserver string = sql.properties.fullyQualifiedDomainName
+output sqlserver string = sql.outputs.sqlFqdn
 output sqlusername string = sqlUsername
-output dbname string = dbName
+output dbname string = sql.outputs.dbName
 
 resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAppGateway == 'true') {
   name: stackName
