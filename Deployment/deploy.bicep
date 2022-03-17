@@ -950,6 +950,7 @@ resource apim 'Microsoft.ApiManagement/service@2021-01-01-preview' = if (enableA
     publisherName: 'Contoso'
   }
 }
+
 resource rewardsapi 'Microsoft.ApiManagement/service/apis@2021-04-01-preview' = if (enableAPIM == 'true') {
   parent: apim
   name: 'rewards-api'
@@ -966,5 +967,32 @@ resource rewardsapi 'Microsoft.ApiManagement/service/apis@2021-04-01-preview' = 
     protocols: [
       'https'
     ]
+  }
+}
+
+resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations@2021-04-01-preview' = {
+  parent: rewardsapi
+  name: 'rewards-member-lookup'
+  properties: {
+    templateParameters: [
+      {
+        name: 'memberId'
+        description: 'Member Id'
+        type: 'string'
+        required: true
+        values: []
+      }
+    ]
+    description: 'Use this operation to lookup member information.'
+    responses: [
+      {
+        statusCode: 200
+        headers: []
+        representations: []
+      }
+    ]
+    displayName: 'Lookup member'
+    method: 'GET'
+    urlTemplate: '/{memberId}'
   }
 }
