@@ -49,14 +49,14 @@ jobs:
         name: Resolve shared resources
         working-directory: .\deployment
         run: |
-          .\ResolveSharedResources.ps1 -BUILD_ENV ${{ needs.setup.outputs.build_env }} -RESOURCE_GROUP ${{ secrets.RESOURCE_GROUP }}
+          .\ResolveSharedResources.ps1 -BUILD_ENV ${{ needs.setup.outputs.build_env }}
 
       - name: Build azure environment
         id: deploy
         uses: azure/arm-deploy@v1
         with:
           deploymentName: 'deploy-${{ needs.setup.outputs.build_env }}-${{ github.run_number }}'
-          resourceGroupName: ${{ secrets.RESOURCE_GROUP }}
+          resourceGroupName: ${{ steps.resolve-shared-resources.outputs.appResourceGroup }}
           template: ./deployment/deploy.bicep
           parameters: >
             version=${{ github.run_number }}
@@ -65,7 +65,7 @@ jobs:
             prefix=${{ secrets.PREFIX }}
             appEnvironment=${{ needs.setup.outputs.build_env }}
             branch=${{ github.ref }}
-            keyVaultId=${{ steps.resolve-shared-resources.outputs.keyVaultId }}
+            sharedResourceGroup=${{ steps.resolve-shared-resources.outputs.sharedResourceGroup }}
             enableAppGateway=${{ steps.resolve-shared-resources.outputs.enableAppGateway }}
             subnetId=${{ steps.resolve-shared-resources.outputs.subnetId }}
             enableFrontdoor=${{ steps.resolve-shared-resources.outputs.enableFrontdoor }}
@@ -80,7 +80,7 @@ jobs:
           -MemberServiceApi ${{ steps.deploy.outputs.membersvc }} `
           -Backend ${{ steps.deploy.outputs.backend }} `
           -BUILD_ENV ${{ needs.setup.outputs.build_env }} `
-          -ResourceGroup ${{ secrets.RESOURCE_GROUP }} `
+          -ResourceGroup ${{ steps.resolve-shared-resources.outputs.appResourceGroup }} `
           -DbName ${{ steps.deploy.outputs.dbname }} `
           -SqlServer ${{ steps.deploy.outputs.sqlserver }} `
           -SqlUsername ${{ steps.deploy.outputs.sqlusername }} `

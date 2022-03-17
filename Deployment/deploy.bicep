@@ -2,7 +2,7 @@ param prefix string
 param appEnvironment string
 param branch string
 param location string = 'centralus'
-param kvResourceGroup string
+param sharedResourceGroup string
 param keyVaultName string
 param managedIdentityId string
 param version string
@@ -71,7 +71,7 @@ var sqlUsername = 'app'
 
 resource kv 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
   name: keyVaultName
-  scope: resourceGroup(subscription().subscriptionId, kvResourceGroup)
+  scope: resourceGroup(subscription().subscriptionId, sharedResourceGroup)
 }
 
 module sql './sql.bicep' = {

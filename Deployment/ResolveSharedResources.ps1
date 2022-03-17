@@ -1,6 +1,5 @@
 param(
-    [string]$BUILD_ENV,
-    [string]$RESOURCE_GROUP)
+    [string]$BUILD_ENV)
 
 $platformRes = (az resource list --tag stack-name=platform | ConvertFrom-Json)
 if (!$platformRes) {
@@ -16,6 +15,13 @@ if (!$kv) {
 
 $kvName = $kv.name
 Write-Host "::set-output name=keyVaultName::$kvName"
+$sharedResourceGroup = $kv.resourceGroup
+Write-Host "::set-output name=sharedResourceGroup::$sharedResourceGroup"
+
+# This is the rg where the application should be deployed
+$groups = az group list --tag stack-environment=$BUILD_ENV | ConvertFrom-Json
+$appResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'contoso-customer-service-app-service' }).name
+Write-Host "::set-output name=appResourceGroup::$appResourceGroup"
 
 # https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/template-tutorial-use-key-vault
 $keyVaultId = $kv.id
