@@ -993,6 +993,6 @@ resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations
     ]
     displayName: 'Lookup member'
     method: 'GET'
-    urlTemplate: '/{memberId}'
+    urlTemplate: '/member/{memberId}'
   }
 }

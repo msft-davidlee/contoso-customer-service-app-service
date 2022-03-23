@@ -1,14 +1,14 @@
 param(
     [string]$BUILD_ENV)
 
-$platformRes = (az resource list --tag stack-name=platform | ConvertFrom-Json)
+$platformRes = (az resource list --tag stack-name=shared-key-vault | ConvertFrom-Json)
 if (!$platformRes) {
-    throw "Unable to find eligible platform resource!"
+    throw "Unable to find eligible shared key vault resource!"
 }
 if ($platformRes.Length -eq 0) {
-    throw "Unable to find 'ANY' eligible platform resource!"
+    throw "Unable to find 'ANY' eligible shared key vault resource!"
 }
-$kv = ($platformRes | Where-Object { $_.type -eq "Microsoft.KeyVault/vaults" -and $_.tags.'stack-environment' -eq 'prod' })
+$kv = ($platformRes | Where-Object { $_.tags.'stack-environment' -eq 'prod' })
 if (!$kv) {
     throw "Unable to find Key Vault resource!"
 }
@@ -34,7 +34,15 @@ Write-Host "::set-output name=sqlPassword::$sqlPassword"
 $mid = (az identity list -g appservice-dev | ConvertFrom-Json).id
 Write-Host "::set-output name=managedIdentityId::$mid"
 
-$config = ($platformRes | Where-Object { $_.type -eq "Microsoft.AppConfiguration/configurationStores" -and $_.tags.'stack-environment' -eq 'prod' })
+$platformRes = (az resource list --tag stack-name=shared-configuration | ConvertFrom-Json)
+if (!$platformRes) {
+    throw "Unable to find eligible shared configuration resource!"
+}
+if ($platformRes.Length -eq 0) {
+    throw "Unable to find 'ANY' eligible shared configuration resource!"
+}
+
+$config = ($platformRes | Where-Object { $_.tags.'stack-environment' -eq 'prod' })
 if (!$config) {
     throw "Unable to find App Config resource!"
 }
@@ -58,6 +66,13 @@ if ($LastExitCode -ne 0) {
 }
 Write-Host "::set-output name=enableAPIM::$enableAPIM"
 
+$platformRes = (az resource list --tag stack-name=platform | ConvertFrom-Json)
+if (!$platformRes) {
+    throw "Unable to find eligible platform resource!"
+}
+if ($platformRes.Length -eq 0) {
+    throw "Unable to find 'ANY' eligible platform resource!"
+}
 $vnet = ($platformRes | Where-Object { $_.type -eq "Microsoft.Network/virtualNetworks" -and $_.name.Contains("-pri-") -and $_.tags.'stack-environment' -eq $BUILD_ENV })
 if (!$vnet) {
     throw "Unable to find Virtual Network resource!"
