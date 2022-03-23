@@ -970,7 +970,7 @@ resource rewardsapi 'Microsoft.ApiManagement/service/apis@2021-04-01-preview' = 
   }
 }
 
-resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations@2021-04-01-preview' = {
+resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations@2021-04-01-preview' = if (enableAPIM == 'true') {
   parent: rewardsapi
   name: 'rewards-member-lookup'
   properties: {
