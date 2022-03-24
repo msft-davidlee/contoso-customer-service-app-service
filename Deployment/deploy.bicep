@@ -996,3 +996,13 @@ resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations
     urlTemplate: '/member/{memberId}'
   }
 }
+
+var rawValue = replace(replace(loadTextContent('member-lookup.xml'), '%ALTID%', altidapp), '%MEMBERSVC%', membersvcapp)
+resource rewardsapiMemberLookupPolicy 'Microsoft.ApiManagement/service/apis/operations/policies@2021-04-01-preview' = {
+  parent: rewardsapiMemberLookup
+  name: 'policy'
+  properties: {
+    value: rawValue
+    format: 'rawxml'
+  }
+}
