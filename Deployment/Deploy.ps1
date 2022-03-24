@@ -14,7 +14,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Shared components are tagged with the stack name of Platform for the environment.
-$platformRes = (az resource list --tag stack-name=platform | ConvertFrom-Json)
+$platformRes = (az resource list --tag stack-name=shared-storage | ConvertFrom-Json)
 if (!$platformRes) {
     throw "Unable to find eligible platform resources!"
 }
@@ -22,7 +22,7 @@ if ($platformRes.Length -eq 0) {
     throw "Unable to find 'ANY' eligible platform resources!"
 }
 
-$strs = ($platformRes | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" -and $_.tags.'stack-environment' -eq 'prod' })
+$strs = ($platformRes | Where-Object { $_.tags.'stack-environment' -eq 'prod' })
 if (!$strs) {
     throw "Unable to find eligible platform storage account!"
 }
