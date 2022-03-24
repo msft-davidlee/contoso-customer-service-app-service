@@ -3,48 +3,27 @@
         <base />
         <choose>
             <when condition="@(context.Request.Headers.GetValueOrDefault("version") == "1")">
-                <set-variable name="alternateMemberId" value="@(context.Request.MatchedParameters["memberId"])" />
-                <send-request mode="new" response-variable-name="responsedata" timeout="20" ignore-error="false">
-                    <set-url>@(String.Format("https://%ALTID%.azurewebsites.net/AlternateId/{0}",context.Variables["alternateMemberId"]))</set-url>
-                    <set-method>GET</set-method>
-                    <set-header name="Authorization" exists-action="override">
-                        <value>@(context.Request.Headers.GetValueOrDefault("Authorization"))</value>
-                    </set-header>
-                </send-request>
-                <set-variable name="correctMemberId" value="@(((IResponse)context.Variables["responsedata"]).Body.As<JObject>().Property("memberId"))" />
-                <send-request mode="new" response-variable-name="responsedata2" timeout="20" ignore-error="false">
-                    <set-url>@(String.Format("https://%MEMBERSVC%.azurewebsites.net/Members?memberId={0}",context.Variables["correctMemberId"]))</set-url>
-                    <set-method>GET</set-method>
-                    <set-header name="Authorization" exists-action="override">
-                        <value>@(context.Request.Headers.GetValueOrDefault("Authorization"))</value>
-                    </set-header>
-                </send-request>
-                <return-response response-variable-name="finalResponse">
-                    <set-status code="200" reason="OK" />
-                    <set-header name="Content-Type" exists-action="override">
-                        <value>application/json</value>
-                    </set-header>
-                    <set-body>@(new JObject(new JProperty("responsedata",((IResponse)context.Variables["responsedata"]).Body.As<JObject>())).ToString())</set-body>
-                    </return-response>
-                </when>
-                <when condition="@(context.Request.Headers.GetValueOrDefault("version") == "2")">
-                    <rewrite-uri template="/Members?memberId={memberId}" />
-                    <set-backend-service base-url="https://%MEMBERSVC%.azurewebsites.net" />
-                </when>
-                <otherwise>
-                    <return-response>
-                        <set-status code="400" reason="Missing header version or invalid version" />
-                    </return-response>
-                </otherwise>
-            </choose>
-        </inbound>
-        <backend>
-            <base />
-        </backend>
-        <outbound>
-            <base />
-        </outbound>
-        <on-error>
-            <base />
-        </on-error>
-    </policies>
+                <rewrite-uri template="/legacy/Members?alternateMemberId={memberId}" />
+                <set-backend-service base-url="https://%MEMBERSVC%.azurewebsites.net" />
+            </when>
+            <when condition="@(context.Request.Headers.GetValueOrDefault("version") == "2")">
+                <rewrite-uri template="/Members?memberId={memberId}" />
+                <set-backend-service base-url="https://%MEMBERSVC%.azurewebsites.net" />
+            </when>
+            <otherwise>
+                <return-response>
+                    <set-status code="400" reason="Missing header version or invalid version" />
+                </return-response>
+            </otherwise>
+        </choose>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
