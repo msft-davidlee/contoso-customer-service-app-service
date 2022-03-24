@@ -466,6 +466,10 @@ resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
           name: 'AzureAd:Audience'
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-audience)'
         }
+        {
+          name: 'AlternateIdServiceUri'
+          value: 'https://${altidapp}.azurewebsites.net'
+        }
       ]
     }
   }
@@ -994,5 +998,27 @@ resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations
     displayName: 'Lookup member'
     method: 'GET'
     urlTemplate: '/member/{memberId}'
+  }
+}
+
+var rawValue = replace(loadTextContent('member-lookup.xml'), '%MEMBERSVC%', membersvcapp)
+resource rewardsapiMemberLookupPolicy 'Microsoft.ApiManagement/service/apis/operations/policies@2021-04-01-preview' = {
+  parent: rewardsapiMemberLookup
+  name: 'policy'
+  properties: {
+    value: rawValue
+    format: 'rawxml'
+  }
+}
+
+resource apimlogger 'Microsoft.ApiManagement/service/loggers@2021-04-01-preview' = {
+  parent: apim
+  name: stackName
+  properties: {
+    loggerType: 'applicationInsights'
+    credentials: {
+      instrumentationKey: appinsights.properties.InstrumentationKey
+    }
+    resourceId: appinsights.id
   }
 }

@@ -1,0 +1,29 @@
+<policies>
+    <inbound>
+        <base />
+        <choose>
+            <when condition="@(context.Request.Headers.GetValueOrDefault("version") == "1")">
+                <rewrite-uri template="/legacy/Members/{memberId}" />
+                <set-backend-service base-url="https://%MEMBERSVC%.azurewebsites.net" />
+            </when>
+            <when condition="@(context.Request.Headers.GetValueOrDefault("version") == "2")">
+                <rewrite-uri template="/Members?memberId={memberId}" />
+                <set-backend-service base-url="https://%MEMBERSVC%.azurewebsites.net" />
+            </when>
+            <otherwise>
+                <return-response>
+                    <set-status code="400" reason="Missing header version or invalid version" />
+                </return-response>
+            </otherwise>
+        </choose>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
