@@ -1006,3 +1006,15 @@ resource rewardsapiMemberLookupPolicy 'Microsoft.ApiManagement/service/apis/oper
     format: 'rawxml'
   }
 }
+
+resource apimlogger 'Microsoft.ApiManagement/service/loggers@2021-04-01-preview' = {
+  parent: apim
+  name: stackName
+  properties: {
+    loggerType: 'applicationInsights'
+    credentials: {
+      instrumentationKey: appinsights.properties.InstrumentationKey
+    }
+    resourceId: appinsights.id
+  }
+}
