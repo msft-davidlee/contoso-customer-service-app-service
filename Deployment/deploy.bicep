@@ -466,6 +466,10 @@ resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
           name: 'AzureAd:Audience'
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-audience)'
         }
+        {
+          name: 'AlternateIdServiceUri'
+          value: 'https://${altidapp}.azurewebsites.net'
+        }
       ]
     }
   }
