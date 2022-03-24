@@ -2,14 +2,14 @@ param prefix string
 param appEnvironment string
 param branch string
 param location string = 'centralus'
-@secure()
-param sqlPassword string
+param sharedResourceGroup string
 param keyVaultName string
 param managedIdentityId string
 param version string
 param enableAppGateway string
 param subnetId string
 param enableFrontdoor string
+param enableAPIM string
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -67,41 +67,20 @@ resource strqueuename 'Microsoft.Storage/storageAccounts/queueServices/queues@20
 
 var sqlUsername = 'app'
 
-resource sql 'Microsoft.Sql/servers@2021-02-01-preview' = {
-  name: stackName
-  location: location
-  tags: tags
-  properties: {
-    administratorLogin: sqlUsername
-    administratorLoginPassword: sqlPassword
-    version: '12.0'
-    minimalTlsVersion: '1.2'
-    publicNetworkAccess: 'Enabled'
-  }
+//https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/key-vault-parameter?tabs=azure-cli#use-getsecret-function
+
+resource kv 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
+  name: keyVaultName
+  scope: resourceGroup(subscription().subscriptionId, sharedResourceGroup)
 }
 
-var dbName = 'app'
-resource db 'Microsoft.Sql/servers/databases@2021-02-01-preview' = {
-  name: dbName
-  parent: sql
-  location: location
-  tags: tags
-  sku: {
-    name: 'Basic'
-    tier: 'Basic'
-    capacity: 5
-  }
-  properties: {
-    collation: 'SQL_Latin1_General_CP1_CI_AS'
-  }
-}
-
-resource sqlfw 'Microsoft.Sql/servers/firewallRules@2021-02-01-preview' = {
-  parent: sql
-  name: 'AllowAllMicrosoftAzureIps'
-  properties: {
-    endIpAddress: '0.0.0.0'
-    startIpAddress: '0.0.0.0'
+module sql './sql.bicep' = {
+  name: 'deploySQL'
+  params: {
+    stackName: stackName
+    sqlPassword: kv.getSecret('contoso-customer-service-sql-password')
+    tags: tags
+    location: location
   }
 }
 
@@ -203,11 +182,11 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'DbSource'
-          value: sql.properties.fullyQualifiedDomainName
+          value: sql.outputs.sqlFqdn
         }
         {
           name: 'DbName'
-          value: dbName
+          value: sql.outputs.dbName
         }
         {
           name: 'DbUserId'
@@ -246,12 +225,20 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-client-secret)'
         }
         {
+          name: 'AzureAd:Scopes'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-scope)'
+        }
+        {
           name: 'AlternateIdServiceUri'
           value: 'https://${altidapp}.azurewebsites.net'
         }
         {
           name: 'PartnerAPIUri'
           value: 'https://${partapiapp}.azurewebsites.net'
+        }
+        {
+          name: 'MemberServiceUri'
+          value: 'https://${membersvcapp}.azurewebsites.net'
         }
         {
           name: 'OverrideAuthRedirectHostName'
@@ -334,11 +321,11 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'DbSource'
-          value: sql.properties.fullyQualifiedDomainName
+          value: sql.outputs.sqlFqdn
         }
         {
           name: 'DbName'
-          value: dbName
+          value: sql.outputs.dbName
         }
         {
           name: 'DbUserId'
@@ -347,6 +334,137 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
         {
           name: 'DbPassword'
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
+        }
+        {
+          name: 'AzureAd:Instance'
+          value: environment().authentication.loginEndpoint
+        }
+        {
+          name: 'AzureAd:TenantId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-tenant-id)'
+        }
+        {
+          name: 'AzureAd:Domain'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-domain)'
+        }
+        {
+          name: 'AzureAd:ClientId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-client-id)'
+        }
+        {
+          name: 'AzureAd:Audience'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-audience)'
+        }
+      ]
+    }
+  }
+}
+
+var membersvcapp = '${stackName}membersvcapp'
+resource membersvcappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
+  name: membersvcapp
+  location: location
+  tags: tags
+  sku: {
+    name: appPlanName
+  }
+}
+
+resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
+  name: membersvcapp
+  location: location
+  tags: tags
+  identity: identity
+  properties: {
+    keyVaultReferenceIdentity: managedIdentityId
+    serverFarmId: membersvcappplan.id
+    httpsOnly: true
+    siteConfig: {
+      healthCheckPath: '/health'
+      netFrameworkVersion: 'v6.0'
+      #disable-next-line BCP037
+      metadata: [
+        {
+          name: 'CURRENT_STACK'
+          value: 'dotnet'
+        }
+      ]
+      appSettings: [
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appinsights.properties.InstrumentationKey
+        }
+        {
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~2'
+        }
+        {
+          name: 'XDT_MicrosoftApplicationInsights_Mode'
+          value: 'recommended'
+        }
+        {
+          name: 'DiagnosticServices_EXTENSION_VERSION'
+          value: '~3'
+        }
+        {
+          name: 'APPINSIGHTS_PROFILERFEATURE_VERSION'
+          value: 'disabled'
+        }
+        {
+          name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION'
+          value: '1.0.0'
+        }
+        {
+          name: 'InstrumentationEngine_EXTENSION_VERSION'
+          value: '~1'
+        }
+        {
+          name: 'SnapshotDebugger_EXTENSION_VERSION'
+          value: 'disabled'
+        }
+        {
+          name: 'XDT_MicrosoftApplicationInsights_BaseExtensions'
+          value: '~1'
+        }
+        {
+          name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Development'
+        }
+        {
+          name: 'DbSource'
+          value: sql.outputs.sqlFqdn
+        }
+        {
+          name: 'DbName'
+          value: sql.outputs.dbName
+        }
+        {
+          name: 'DbUserId'
+          value: sqlUsername
+        }
+        {
+          name: 'DbPassword'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
+        }
+        {
+          name: 'AzureAd:Instance'
+          value: environment().authentication.loginEndpoint
+        }
+        {
+          name: 'AzureAd:TenantId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-tenant-id)'
+        }
+        {
+          name: 'AzureAd:Domain'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-domain)'
+        }
+        {
+          name: 'AzureAd:ClientId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-client-id)'
+        }
+        {
+          name: 'AzureAd:Audience'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-audience)'
         }
       ]
     }
@@ -425,11 +543,11 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
         {
           name: 'DbSource'
-          value: sql.properties.fullyQualifiedDomainName
+          value: sql.outputs.sqlFqdn
         }
         {
           name: 'DbName'
-          value: dbName
+          value: sql.outputs.dbName
         }
         {
           name: 'DbUserId'
@@ -506,11 +624,11 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
         }
         {
           name: 'DbSource'
-          value: sql.properties.fullyQualifiedDomainName
+          value: sql.outputs.sqlFqdn
         }
         {
           name: 'DbName'
-          value: dbName
+          value: sql.outputs.dbName
         }
         {
           name: 'DbUserId'
@@ -568,10 +686,11 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
 output cs string = csapp
 output altid string = altidapp
 output partapi string = partapiapp
+output membersvc string = membersvcapp
 output backend string = backendapp
-output sqlserver string = sql.properties.fullyQualifiedDomainName
+output sqlserver string = sql.outputs.sqlFqdn
 output sqlusername string = sqlUsername
-output dbname string = dbName
+output dbname string = sql.outputs.dbName
 
 resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAppGateway == 'true') {
   name: stackName
@@ -815,5 +934,65 @@ resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdo
         }
       }
     ]
+  }
+}
+
+resource apim 'Microsoft.ApiManagement/service@2021-01-01-preview' = if (enableAPIM == 'true') {
+  name: stackName
+  location: location
+  tags: tags
+  sku: {
+    name: 'Developer'
+    capacity: 1
+  }
+  properties: {
+    publisherEmail: 'api@contoso.com'
+    publisherName: 'Contoso'
+  }
+}
+
+resource rewardsapi 'Microsoft.ApiManagement/service/apis@2021-04-01-preview' = if (enableAPIM == 'true') {
+  parent: apim
+  name: 'rewards-api'
+  properties: {
+    subscriptionRequired: true
+    subscriptionKeyParameterNames: {
+      header: 'Ocp-Apim-Subscription-Key'
+      query: 'subscription-key'
+    }
+    apiRevision: '1'
+    isCurrent: true
+    displayName: 'Rewards API'
+    path: 'rewards'
+    protocols: [
+      'https'
+    ]
+  }
+}
+
+resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations@2021-04-01-preview' = if (enableAPIM == 'true') {
+  parent: rewardsapi
+  name: 'rewards-member-lookup'
+  properties: {
+    templateParameters: [
+      {
+        name: 'memberId'
+        description: 'Member Id'
+        type: 'string'
+        required: true
+        values: []
+      }
+    ]
+    description: 'Use this operation to lookup member information.'
+    responses: [
+      {
+        statusCode: 200
+        headers: []
+        representations: []
+      }
+    ]
+    displayName: 'Lookup member'
+    method: 'GET'
+    urlTemplate: '/member/{memberId}'
   }
 }
