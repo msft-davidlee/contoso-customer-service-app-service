@@ -3,7 +3,7 @@
         <base />
         <choose>
             <when condition="@(context.Request.Headers.GetValueOrDefault("version") == "1")">
-                <rewrite-uri template="/legacy/Members?alternateMemberId={memberId}" />
+                <rewrite-uri template="/legacy/Members/{memberId}" />
                 <set-backend-service base-url="https://%MEMBERSVC%.azurewebsites.net" />
             </when>
             <when condition="@(context.Request.Headers.GetValueOrDefault("version") == "2")">

@@ -30,7 +30,7 @@ if (!$strs) {
 $BuildAccountName = $strs.name
 
 # The version here can be configurable so we can also pull dev specific packages.
-$version = "v4.4-dev"
+$version = "v4.4"
 
 az storage blob download-batch --destination . -s apps --account-name $BuildAccountName --pattern *$version*.zip
 if ($LastExitCode -ne 0) {
