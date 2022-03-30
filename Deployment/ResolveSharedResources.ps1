@@ -66,12 +66,12 @@ if ($LastExitCode -ne 0) {
 }
 Write-Host "::set-output name=enableAPIM::$enableAPIM"
 
-$platformRes = (az resource list --tag stack-name=platform | ConvertFrom-Json)
+$platformRes = (az resource list --tag stack-name=networking | ConvertFrom-Json)
 if (!$platformRes) {
-    throw "Unable to find eligible platform resource!"
+    throw "Unable to find eligible networking resource!"
 }
 if ($platformRes.Length -eq 0) {
-    throw "Unable to find 'ANY' eligible platform resource!"
+    throw "Unable to find 'ANY' eligible networking resource!"
 }
 $vnet = ($platformRes | Where-Object { $_.type -eq "Microsoft.Network/virtualNetworks" -and $_.name.Contains("-pri-") -and $_.tags.'stack-environment' -eq $BUILD_ENV })
 if (!$vnet) {
