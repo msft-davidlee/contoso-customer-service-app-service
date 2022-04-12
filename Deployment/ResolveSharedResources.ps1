@@ -66,7 +66,7 @@ if ($LastExitCode -ne 0) {
 }
 Write-Host "::set-output name=enableAPIM::$enableAPIM"
 
-$platformRes = (az resource list --tag stack-name=networking | ConvertFrom-Json)
+$platformRes = (az resource list --tag stack-name=platform | ConvertFrom-Json)
 if (!$platformRes) {
     throw "Unable to find eligible networking resource!"
 }
