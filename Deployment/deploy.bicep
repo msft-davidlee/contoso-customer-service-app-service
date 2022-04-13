@@ -1002,7 +1002,7 @@ resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations
 }
 
 var rawValue = replace(loadTextContent('member-lookup.xml'), '%MEMBERSVC%', membersvcapp)
-resource rewardsapiMemberLookupPolicy 'Microsoft.ApiManagement/service/apis/operations/policies@2021-04-01-preview' = {
+resource rewardsapiMemberLookupPolicy 'Microsoft.ApiManagement/service/apis/operations/policies@2021-04-01-preview' = if (enableAPIM == 'true') {
   parent: rewardsapiMemberLookup
   name: 'policy'
   properties: {
@@ -1011,7 +1011,7 @@ resource rewardsapiMemberLookupPolicy 'Microsoft.ApiManagement/service/apis/oper
   }
 }
 
-resource apimlogger 'Microsoft.ApiManagement/service/loggers@2021-04-01-preview' = {
+resource apimlogger 'Microsoft.ApiManagement/service/loggers@2021-04-01-preview' = if (enableAPIM == 'true') {
   parent: apim
   name: stackName
   properties: {
