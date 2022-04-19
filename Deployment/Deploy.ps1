@@ -66,5 +66,5 @@ if ($LastExitCode -ne 0) {
 
 # Deploy specfic version of SQL script
 $sqlFile = "Migrations-$version.sql"
-az storage blob download-batch --destination . -s apps --account-name $BuildAccountName --pattern $sqlFile
+az storage blob download --file $sqlFile --account-name $BuildAccountName --container-name apps --name $sqlFile
 Invoke-Sqlcmd -InputFile $sqlFile -ServerInstance $SqlServer -Database $DbName -Username $SqlUsername -Password $SqlPassword
