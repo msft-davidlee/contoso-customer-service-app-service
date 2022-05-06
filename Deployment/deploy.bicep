@@ -97,8 +97,9 @@ resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   }
 }
 
+var csapp = '${stackName}csapp'
 resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
-  name: '${stackName}csapp'
+  name: csapp
   location: location
   tags: tags
   identity: identity

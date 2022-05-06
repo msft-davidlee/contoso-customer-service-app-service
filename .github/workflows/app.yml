@@ -50,6 +50,12 @@ jobs:
           creds: ${{ secrets.MS_AZURE_CREDENTIALS }}
           enable-AzPSSession: true
 
+      - id: removedevresources
+        if: needs.setup.outputs.build_env == 'prod'
+        name: Remove Dev Resources
+        run: |
+          .\Deployment\RemoveDevResources.ps1 -StackNameTag ${{ env.STACK_NAME_TAG }}          
+
       - id: resolve-shared-resources
         name: Resolve shared resources
         working-directory: .\deployment
@@ -91,26 +97,6 @@ jobs:
           -SqlServer ${{ steps.deploy.outputs.sqlserver }} `
           -SqlUsername ${{ steps.deploy.outputs.sqlusername }} `
           -SqlPassword ${{ steps.resolve-shared-resources.outputs.sqlPassword }}
-
-  cleanup:
-    name: Clean up
-    if: needs.setup.outputs.build_env == 'prod'
-    needs: setup    
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Azure CLI Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.MS_AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
-
-      - id: removedevresources
-        if: needs.setup.outputs.build_env == 'prod'
-        name: Remove Dev Resources
-        run: |
-          .\Deployment\RemoveDevResources.ps1 -StackNameTag ${{ env.STACK_NAME_TAG }}
 
   deploy_db:
     name: Deploy database
