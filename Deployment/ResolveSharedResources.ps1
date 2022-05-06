@@ -1,5 +1,6 @@
 param(
-    [string]$BUILD_ENV)
+    [string]$BUILD_ENV,
+    [string]$StackTagName)
 
 $platformRes = (az resource list --tag stack-name=shared-key-vault | ConvertFrom-Json)
 if (!$platformRes) {
@@ -48,19 +49,19 @@ if (!$config) {
 }
 
 $configName = $config.name
-$enableAppGateway = (az appconfig kv show -n $configName --key "contoso-customer-service-app-service/deployment-flags/enable-app-gateway" --label $BUILD_ENV --auth-mode login | ConvertFrom-Json).value
+$enableAppGateway = (az appconfig kv show -n $configName --key "$StackTagName/deployment-flags/enable-app-gateway" --label $BUILD_ENV --auth-mode login | ConvertFrom-Json).value
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to get enable-app-gateway flag from $configName."
 }
 Write-Host "::set-output name=enableAppGateway::$enableAppGateway"
 
-$enableFrontdoor = (az appconfig kv show -n $configName --key "contoso-customer-service-app-service/deployment-flags/enable-frontdoor" --label $BUILD_ENV --auth-mode login | ConvertFrom-Json).value
+$enableFrontdoor = (az appconfig kv show -n $configName --key "$StackTagName/deployment-flags/enable-frontdoor" --label $BUILD_ENV --auth-mode login | ConvertFrom-Json).value
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to get enable-frontdoor flag from $configName."
 }
 Write-Host "::set-output name=enableFrontdoor::$enableFrontdoor"
 
-$enableAPIM = (az appconfig kv show -n $configName --key "contoso-customer-service-app-service/deployment-flags/enable-apim" --label $BUILD_ENV --auth-mode login | ConvertFrom-Json).value
+$enableAPIM = (az appconfig kv show -n $configName --key "$StackTagName/deployment-flags/enable-apim" --label $BUILD_ENV --auth-mode login | ConvertFrom-Json).value
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to get enable-APIM flag from $configName."
 }

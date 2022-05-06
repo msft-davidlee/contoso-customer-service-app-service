@@ -63,8 +63,3 @@ az functionapp deployment source config-zip -g $ResourceGroup -n $Backend --src 
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to deploy backend."
 }
-
-# Deploy specfic version of SQL script
-$sqlFile = "Migrations-$version.sql"
-az storage blob download --file $sqlFile --account-name $BuildAccountName --container-name apps --name $sqlFile
-Invoke-Sqlcmd -InputFile $sqlFile -ServerInstance $SqlServer -Database $DbName -Username $SqlUsername -Password $SqlPassword
