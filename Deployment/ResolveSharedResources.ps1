@@ -92,6 +92,7 @@ if (!$subnetId) {
 
 Write-Host "::set-output name=subnetId::$subnetId"
 
+$platformRes = (az resource list --tag stack-name=shared-storage | ConvertFrom-Json)
 $strs = ($platformRes | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" -and $_.tags.'stack-environment' -eq 'prod' })
 if (!$strs) {
     throw "Unable to find eligible platform storage account!"
