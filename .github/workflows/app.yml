@@ -1,17 +1,15 @@
 on:
   push:
-    paths-ignore: 
+    paths-ignore:
       - 'README.md'
   workflow_dispatch:
     inputs:
       environmentselector:
-        description: "Environment selector"
+        description: 'Environment selector'
         required: false
-        default: "default"
+        default: 'default'
 env:
   APP_VERSION: 'v5.15'
-  BACKEND_FUNC_STORAGE_SUFFIX: 'backendapp'
-  STORAGE_QUEUE_SUFFIX: 'db'
   STACK_NAME_TAG: 'contoso-customer-service-app-service'
 
 jobs:
@@ -54,7 +52,7 @@ jobs:
         if: needs.setup.outputs.build_env == 'prod'
         name: Remove Dev Resources
         run: |
-          .\Deployment\RemoveDevResources.ps1 -StackNameTag ${{ env.STACK_NAME_TAG }}          
+          .\Deployment\RemoveDevResources.ps1 -StackNameTag ${{ env.STACK_NAME_TAG }}
 
       - id: resolve-shared-resources
         name: Resolve shared resources
@@ -62,7 +60,7 @@ jobs:
         run: |
           .\ResolveSharedResources.ps1 -BUILD_ENV ${{ needs.setup.outputs.build_env }} -StackTagName ${{ env.STACK_NAME_TAG }}
 
-      - name: Build azure environment
+      - name: Build azure environment and deploy apps
         id: deploy
         uses: azure/arm-deploy@v1
         with:
@@ -82,37 +80,8 @@ jobs:
             enableFrontdoor=${{ steps.resolve-shared-resources.outputs.enableFrontdoor }}
             enableAPIM=${{ steps.resolve-shared-resources.outputs.enableAPIM }}
             stackTagName=${{ env.STACK_NAME_TAG }}
-
-      - id: appsdeploy
-        name: Deploy to app services using zip deployment
-        run: |
-          .\Deployment\Deploy.ps1 -CustomerService ${{ steps.deploy.outputs.cs }} `
-          -AlternateId ${{ steps.deploy.outputs.altid }} `
-          -PartnerApi ${{ steps.deploy.outputs.partapi }} `
-          -MemberServiceApi ${{ steps.deploy.outputs.membersvc }} `
-          -Backend ${{ steps.deploy.outputs.backend }} `
-          -BUILD_ENV ${{ needs.setup.outputs.build_env }} `
-          -ResourceGroup ${{ steps.resolve-shared-resources.outputs.appResourceGroup }} `
-          -DbName ${{ steps.deploy.outputs.dbname }} `
-          -SqlServer ${{ steps.deploy.outputs.sqlserver }} `
-          -SqlUsername ${{ steps.deploy.outputs.sqlusername }} `
-          -SqlPassword ${{ steps.resolve-shared-resources.outputs.sqlPassword }}
-
-  deploy_db:
-    name: Deploy database
-    needs:
-      - setup      
-      - cd_deploy
-    runs-on: windows-latest
-    environment: ${{ needs.setup.outputs.build_env }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Azure CLI Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.MS_AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+            buildAccountName=${{ steps.resolve-shared-resources.outputs.buildAccountName }}
+            appVersion=${{ env.APP_VERSION }}
 
       - id: resolve-sql-connectionstring
         name: Resolve SQL connection string

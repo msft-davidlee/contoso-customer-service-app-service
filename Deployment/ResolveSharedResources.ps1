@@ -91,3 +91,11 @@ if (!$subnetId) {
 }
 
 Write-Host "::set-output name=subnetId::$subnetId"
+
+$strs = ($platformRes | Where-Object { $_.tags.'stack-environment' -eq 'prod' })
+if (!$strs) {
+    throw "Unable to find eligible platform storage account!"
+}
+
+$BuildAccountName = $strs.name
+Write-Host "::set-output name=buildAccountName::$BuildAccountName"

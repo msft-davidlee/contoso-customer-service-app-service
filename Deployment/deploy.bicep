@@ -11,6 +11,9 @@ param subnetId string
 param enableFrontdoor string
 param enableAPIM string
 param stackTagName string
+param appVersion string
+param buildAccountName string
+param utc string = utcNow()
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -94,6 +97,25 @@ resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   tags: tags
   sku: {
     name: appPlanName
+  }
+}
+
+var storageAccountUri = 'https://${buildAccountName}.blob.${environment().suffixes.storage}/apps/contoso-demo'
+var sasExp = dateTimeAdd(utc, 'P90D')
+var sas = listServiceSAS(buildAccountName, '2021-04-01', {
+  canonicalizedResource: '/blob/${buildAccountName}/apps'
+  signedResource: 'c'
+  signedProtocol: 'https'
+  signedPermission: 'rl'
+  signedServices: 'b'
+  signedExpiry: sasExp
+})
+
+module csappdeploy './appdeploy.bicep' = {
+  name: 'deployCustomerService'
+  params: {
+    uri: '${storageAccountUri}-website-${appVersion}.zip?${sas}'
+    parentName: csapp
   }
 }
 
@@ -251,6 +273,13 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   }
 }
 
+module memberportaldeploy './appdeploy.bicep' = {
+  name: 'deployMemberPortal'
+  params: {
+    uri: '${storageAccountUri}-website-${appVersion}.zip?${sas}'
+    parentName: memberportal
+  }
+}
 // Member Portal website
 var memberportal = '${stackName}mempapp'
 resource mempappsite 'Microsoft.Web/sites@2021-01-15' = {
@@ -408,6 +437,14 @@ resource apiappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   }
 }
 
+module altiddeploy './appdeploy.bicep' = {
+  name: 'deployAlternateId'
+  params: {
+    uri: '${storageAccountUri}-alternate-id-service-${appVersion}.zip?${sas}'
+    parentName: altidapp
+  }
+}
+
 var altidapp = '${stackName}altidapp'
 resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: altidapp
@@ -507,6 +544,14 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
       ]
     }
+  }
+}
+
+module membersvcdeploy './appdeploy.bicep' = {
+  name: 'deployMemberService'
+  params: {
+    uri: '${storageAccountUri}-member-service-${appVersion}.zip?${sas}'
+    parentName: membersvcapp
   }
 }
 
@@ -613,6 +658,14 @@ resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
         }
       ]
     }
+  }
+}
+
+module pointsdeploy './appdeploy.bicep' = {
+  name: 'deployPoints'
+  params: {
+    uri: '${storageAccountUri}-member-points-service-${appVersion}.zip?${sas}'
+    parentName: pointsapi
   }
 }
 
@@ -841,6 +894,14 @@ resource backendappplan 'Microsoft.Web/serverfarms@2020-10-01' = {
   }
 }
 
+module backendstoragequeuedeploy './appdeploy.bicep' = {
+  name: 'deployBackendStorageQueue'
+  params: {
+    uri: '${storageAccountUri}-storage-queue-func-${appVersion}.zip?${sas}'
+    parentName: backendapp
+  }
+}
+
 var backendappConnection = 'DefaultEndpointsProtocol=https;AccountName=${backendappStr.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(backendappStr.id, backendappStr.apiVersion).keys[0].value}'
 resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
   name: backendapp
@@ -922,6 +983,8 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
 }
 
 output cs string = csapp
+output mem string = memberportal
+output pointsapi string = pointsapi
 output altid string = altidapp
 output partapi string = partapiapp
 output membersvc string = membersvcapp
