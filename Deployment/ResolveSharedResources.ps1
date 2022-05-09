@@ -103,4 +103,4 @@ if ($strs.Length -eq 0) {
 $BuildAccountName = $strs.name
 Write-Host "::set-output name=buildAccountName::$BuildAccountName"
 $buildAccountResourceId = $strs.id
-Write-Host "::set-output name=buildAccountResourceId:$buildAccountResourceId"
+Write-Host "::set-output name=buildAccountResourceId::$buildAccountResourceId"
