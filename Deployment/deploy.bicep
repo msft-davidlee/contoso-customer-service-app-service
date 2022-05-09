@@ -13,6 +13,7 @@ param enableAPIM string
 param stackTagName string
 param appVersion string
 param buildAccountName string
+param buildAccountSAS string
 param utc string = utcNow()
 
 var stackName = '${prefix}${appEnvironment}'
@@ -101,15 +102,7 @@ resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
 }
 
 var storageAccountUri = 'https://${buildAccountName}.blob.${environment().suffixes.storage}/apps/contoso-demo'
-var sasExp = dateTimeAdd(utc, 'P90D')
-var sas = listServiceSAS(buildAccountName, '2021-04-01', {
-  canonicalizedResource: '/blob/${buildAccountName}/apps'
-  signedResource: 'c'
-  signedProtocol: 'https'
-  signedPermission: 'rl'
-  signedServices: 'b'
-  signedExpiry: sasExp
-})
+var sas = buildAccountSAS
 
 module csappdeploy './appdeploy.bicep' = {
   name: 'deployCustomerService'
