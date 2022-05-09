@@ -114,6 +114,9 @@ var sas = listServiceSAS(buildAccountResourceId, '2021-04-01', {
 
 module csappdeploy './appdeploy.bicep' = {
   name: 'deployCustomerService'
+  dependsOn: [
+    csappsite
+  ]
   params: {
     uri: '${storageAccountUri}-website-${appVersion}.zip?${sas}'
     parentName: csapp
@@ -276,6 +279,9 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
 
 module memberportaldeploy './appdeploy.bicep' = {
   name: 'deployMemberPortal'
+  dependsOn: [
+    mempappsite
+  ]
   params: {
     uri: '${storageAccountUri}-member-portal-${appVersion}.zip?${sas}'
     parentName: memberportal
@@ -406,7 +412,7 @@ resource mempappsite 'Microsoft.Web/sites@2021-01-15' = {
         {
           name: 'AzureAdB2C:SignedOutCallbackPath'
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-sign-out-callback-path)'
-        }                
+        }
         {
           name: 'AzureAd:CallbackPath'
           value: '/signin-oidc'
@@ -456,6 +462,9 @@ resource apiappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
 
 module altiddeploy './appdeploy.bicep' = {
   name: 'deployAlternateId'
+  dependsOn: [
+    altidappsite
+  ]
   params: {
     uri: '${storageAccountUri}-alternate-id-service-${appVersion}.zip?${sas}'
     parentName: altidapp
@@ -566,6 +575,9 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
 
 module membersvcdeploy './appdeploy.bicep' = {
   name: 'deployMemberService'
+  dependsOn: [
+    membersvcappsite
+  ]
   params: {
     uri: '${storageAccountUri}-member-service-${appVersion}.zip?${sas}'
     parentName: membersvcapp
@@ -680,6 +692,9 @@ resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
 
 module pointsdeploy './appdeploy.bicep' = {
   name: 'deployPoints'
+  dependsOn: [
+    pointsapisite
+  ]
   params: {
     uri: '${storageAccountUri}-member-points-service-${appVersion}.zip?${sas}'
     parentName: pointsapi
@@ -790,6 +805,9 @@ resource pointsapisite 'Microsoft.Web/sites@2021-01-15' = {
 
 module partnerapideploy './appdeploy.bicep' = {
   name: 'deployPartnerAPI'
+  dependsOn: [
+    partapiappsite
+  ]
   params: {
     uri: '${storageAccountUri}-partner-api-${appVersion}.zip?${sas}'
     parentName: partapiapp
@@ -941,6 +959,9 @@ resource backendappplan 'Microsoft.Web/serverfarms@2020-10-01' = {
 
 module backendstoragequeuedeploy './appdeploy.bicep' = {
   name: 'deployBackendStorageQueue'
+  dependsOn: [
+    backendfuncapp
+  ]
   params: {
     uri: '${storageAccountUri}-storage-queue-func-${appVersion}.zip?${sas}'
     parentName: backendapp

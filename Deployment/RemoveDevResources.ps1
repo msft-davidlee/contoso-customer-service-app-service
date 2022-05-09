@@ -3,7 +3,7 @@ param(
 
 $BUILD_ENV = "dev"
 $groups = az group list --tag stack-environment=$BUILD_ENV | ConvertFrom-Json
-$resourceGroupName = ($groups | Where-Object { $_.tags.'stack-name' -eq 'aks' -and $_.tags.'stack-environment' -eq $BUILD_ENV }).name
+$resourceGroupName = ($groups | Where-Object { $_.tags.'stack-name' -eq 'appservice' -and $_.tags.'stack-environment' -eq $BUILD_ENV }).name
 
 $count = 0
 $stackRes = (az resource list --tag stack-name=$StackNameTag | ConvertFrom-Json)
