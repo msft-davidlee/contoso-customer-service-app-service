@@ -81,7 +81,7 @@ jobs:
             enableAPIM=${{ steps.resolve-shared-resources.outputs.enableAPIM }}
             stackTagName=${{ env.STACK_NAME_TAG }}
             buildAccountName=${{ steps.resolve-shared-resources.outputs.buildAccountName }}
-            buildAccountSAS=${{ steps.resolve-shared-resources.outputs.buildAccountSAS }}
+            buildAccountResourceId=${{ steps.resolve-shared-resources.outputs.buildAccountResourceId }}
             appVersion=${{ env.APP_VERSION }}
 
       - id: resolve-sql-connectionstring

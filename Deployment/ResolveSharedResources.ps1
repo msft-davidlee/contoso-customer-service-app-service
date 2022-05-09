@@ -102,9 +102,5 @@ if ($strs.Length -eq 0) {
 }
 $BuildAccountName = $strs.name
 Write-Host "::set-output name=buildAccountName::$BuildAccountName"
-
-# Last for 3 weeks as that's how long our demo can last.
-$end = (Get-Date).AddDays(21).ToString("yyyy-MM-dd")
-$start = (Get-Date).AddDays(-1).ToString("yyyy-MM-dd")
-$sas = (az storage container generate-sas -n apps --account-name $BuildAccountName --permissions racwl --expiry $end --start $start --https-only | ConvertFrom-Json)
-Write-Host "::set-output name=buildAccountSAS::$sas"
+$buildAccountResourceId = $strs.id
+Write-Host "::set-output name=buildAccountResourceId:$buildAccountResourceId"
