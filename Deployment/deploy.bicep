@@ -277,7 +277,7 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
 module memberportaldeploy './appdeploy.bicep' = {
   name: 'deployMemberPortal'
   params: {
-    uri: '${storageAccountUri}-website-${appVersion}.zip?${sas}'
+    uri: '${storageAccountUri}-member-portal-${appVersion}.zip?${sas}'
     parentName: memberportal
   }
 }
@@ -388,6 +388,26 @@ resource mempappsite 'Microsoft.Web/sites@2021-01-15' = {
           value: 'true'
         }
         {
+          name: 'AzureAdB2C:Instance'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-instance)'
+        }
+        {
+          name: 'AzureAdB2C:Domain'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-domain)'
+        }
+        {
+          name: 'AzureAdB2C:ClientId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-client-id)'
+        }
+        {
+          name: 'AzureAdB2C:SignUpSignInPolicyId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-policy-id)'
+        }
+        {
+          name: 'AzureAdB2C:SignedOutCallbackPath'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-sign-out-callback-path)'
+        }                
+        {
           name: 'AzureAd:CallbackPath'
           value: '/signin-oidc'
         }
@@ -400,16 +420,12 @@ resource mempappsite 'Microsoft.Web/sites@2021-01-15' = {
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-tenant-id)'
         }
         {
-          name: 'AzureAd:Domain'
-          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-domain)'
-        }
-        {
           name: 'AzureAd:ClientId'
-          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-client-id)'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-memberportal-client-id)'
         }
         {
           name: 'AzureAd:ClientSecret'
-          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-client-secret)'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-memberportal-client-secret)'
         }
         {
           name: 'AzureAd:Scopes'
@@ -769,6 +785,14 @@ resource pointsapisite 'Microsoft.Web/sites@2021-01-15' = {
         }
       ]
     }
+  }
+}
+
+module partnerapideploy './appdeploy.bicep' = {
+  name: 'deployPartnerAPI'
+  params: {
+    uri: '${storageAccountUri}-partner-api-${appVersion}.zip?${sas}'
+    parentName: partapiapp
   }
 }
 
