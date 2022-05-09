@@ -110,7 +110,7 @@ var sas = listServiceSAS(buildAccountResourceId, '2021-04-01', {
   signedPermission: 'rl'
   signedServices: 'b'
   signedExpiry: sasExp
-})
+}).serviceSasToken
 
 module csappdeploy './appdeploy.bicep' = {
   name: 'deployCustomerService'
