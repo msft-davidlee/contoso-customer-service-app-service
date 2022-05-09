@@ -1,13 +1,16 @@
 on:
   push:
-    paths-ignore: 
+    paths-ignore:
       - 'README.md'
   workflow_dispatch:
     inputs:
       environmentselector:
-        description: "Environment selector"
+        description: 'Environment selector'
         required: false
-        default: "default"
+        default: 'default'
+env:
+  APP_VERSION: 'v5.15'
+  STACK_NAME_TAG: 'contoso-customer-service-app-service'
 
 jobs:
   setup:
@@ -31,8 +34,8 @@ jobs:
     outputs:
       build_env: ${{ steps.setup.outputs.build_env }}
 
-  build_deploy:
-    name: Build and Deploy
+  cd_deploy:
+    name: Deploy Azure Environment
     needs: setup
     environment: ${{ needs.setup.outputs.build_env }}
     runs-on: windows-latest
@@ -45,13 +48,19 @@ jobs:
           creds: ${{ secrets.MS_AZURE_CREDENTIALS }}
           enable-AzPSSession: true
 
+      - id: removedevresources
+        if: needs.setup.outputs.build_env == 'prod'
+        name: Remove Dev Resources
+        run: |
+          .\Deployment\RemoveDevResources.ps1 -StackNameTag ${{ env.STACK_NAME_TAG }}
+
       - id: resolve-shared-resources
         name: Resolve shared resources
         working-directory: .\deployment
         run: |
-          .\ResolveSharedResources.ps1 -BUILD_ENV ${{ needs.setup.outputs.build_env }}
+          .\ResolveSharedResources.ps1 -BUILD_ENV ${{ needs.setup.outputs.build_env }} -StackTagName ${{ env.STACK_NAME_TAG }}
 
-      - name: Build azure environment
+      - name: Build azure environment and deploy apps
         id: deploy
         uses: azure/arm-deploy@v1
         with:
@@ -70,37 +79,31 @@ jobs:
             subnetId=${{ steps.resolve-shared-resources.outputs.subnetId }}
             enableFrontdoor=${{ steps.resolve-shared-resources.outputs.enableFrontdoor }}
             enableAPIM=${{ steps.resolve-shared-resources.outputs.enableAPIM }}
+            stackTagName=${{ env.STACK_NAME_TAG }}
+            buildAccountName=${{ steps.resolve-shared-resources.outputs.buildAccountName }}
+            buildAccountResourceId=${{ steps.resolve-shared-resources.outputs.buildAccountResourceId }}
+            appVersion=${{ env.APP_VERSION }}
 
-      - id: appsdeploy
-        name: Deploy to app services using zip deployment
+      - id: resolve-sql-connectionstring
+        name: Resolve SQL connection string
+        working-directory: .\deployment
         run: |
-          .\Deployment\Deploy.ps1 -CustomerService ${{ steps.deploy.outputs.cs }} `
-          -AlternateId ${{ steps.deploy.outputs.altid }} `
-          -PartnerApi ${{ steps.deploy.outputs.partapi }} `
-          -MemberServiceApi ${{ steps.deploy.outputs.membersvc }} `
-          -Backend ${{ steps.deploy.outputs.backend }} `
+          .\ResolveSqlConnection.ps1 `
+          -APP_VERSION ${{ env.APP_VERSION }} `
           -BUILD_ENV ${{ needs.setup.outputs.build_env }} `
-          -ResourceGroup ${{ steps.resolve-shared-resources.outputs.appResourceGroup }} `
-          -DbName ${{ steps.deploy.outputs.dbname }} `
-          -SqlServer ${{ steps.deploy.outputs.sqlserver }} `
-          -SqlUsername ${{ steps.deploy.outputs.sqlusername }} `
-          -SqlPassword ${{ steps.resolve-shared-resources.outputs.sqlPassword }}
+          -StackNameTag ${{ env.STACK_NAME_TAG }} `
+          -TEMPDIR ${{ github.workspace }}
 
-  cleanup:
-    name: Clean up
-    if: needs.setup.outputs.build_env == 'prod'
-    needs: setup    
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Azure CLI Login
-        uses: azure/login@v1
+      - id: deploy_db
+        name: Deploy database
+        uses: azure/sql-action@v1.2
         with:
-          creds: ${{ secrets.MS_AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+          connection-string: ${{ steps.resolve-sql-connectionstring.outputs.sqlConnectionString }}
+          dacpac-package: ${{ steps.resolve-sql-connectionstring.outputs.dacpac }}
 
-      - id: removedevresources
-        name: Remove Dev Resources
-        run: |
-          .\Deployment\RemoveDevResources.ps1
+      - id: add_mock_data
+        name: Add mock data in database
+        uses: azure/sql-action@v1.2
+        with:
+          connection-string: ${{ steps.resolve-sql-connectionstring.outputs.sqlConnectionString }}
+          sql-file: ${{ steps.resolve-sql-connectionstring.outputs.sqlFile }}

@@ -10,6 +10,11 @@ param enableAppGateway string
 param subnetId string
 param enableFrontdoor string
 param enableAPIM string
+param stackTagName string
+param appVersion string
+param buildAccountName string
+param buildAccountResourceId string
+param utc string = utcNow()
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -21,7 +26,7 @@ var identity = {
 }
 
 var tags = {
-  'stack-name': 'contoso-customer-service-app-service'
+  'stack-name': stackTagName
   'stack-environment': appEnvironment
   'stack-version': version
   'stack-branch': branch
@@ -84,11 +89,11 @@ module sql './sql.bicep' = {
   }
 }
 
-var appPlanName = 'B1'
+var appPlanName = 'S1'
 // Customer service website
-var csapp = '${stackName}csapp'
-resource csappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
-  name: csapp
+var webapp = '${stackName}web'
+resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
+  name: webapp
   location: location
   tags: tags
   sku: {
@@ -96,6 +101,26 @@ resource csappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   }
 }
 
+var storageAccountUri = 'https://${buildAccountName}.blob.${environment().suffixes.storage}/apps/contoso-demo'
+var sasExp = dateTimeAdd(utc, 'P30D')
+var sas = listServiceSAS(buildAccountResourceId, '2021-04-01', {
+  canonicalizedResource: '/blob/${buildAccountName}/apps'
+  signedResource: 'c'
+  signedProtocol: 'https'
+  signedPermission: 'rl'
+  signedServices: 'b'
+  signedExpiry: sasExp
+}).serviceSasToken
+
+module csappdeploy './appdeploy.bicep' = {
+  name: 'deployCustomerService'
+  params: {
+    uri: '${storageAccountUri}-website-${appVersion}.zip?${sas}'
+    parentName: csapp
+  }
+}
+
+var csapp = '${stackName}csapp'
 resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: csapp
   location: location
@@ -103,7 +128,7 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
-    serverFarmId: csappplan.id
+    serverFarmId: webappplan.id
     httpsOnly: true
     siteConfig: {
       http20Enabled: true
@@ -249,9 +274,179 @@ resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   }
 }
 
-var altidapp = '${stackName}altidapp'
-resource altidappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
-  name: altidapp
+module memberportaldeploy './appdeploy.bicep' = {
+  name: 'deployMemberPortal'
+  params: {
+    uri: '${storageAccountUri}-member-portal-${appVersion}.zip?${sas}'
+    parentName: memberportal
+  }
+}
+// Member Portal website
+var memberportal = '${stackName}mempapp'
+resource mempappsite 'Microsoft.Web/sites@2021-01-15' = {
+  name: memberportal
+  location: location
+  tags: tags
+  identity: identity
+  properties: {
+    keyVaultReferenceIdentity: managedIdentityId
+    serverFarmId: webappplan.id
+    httpsOnly: true
+    siteConfig: {
+      http20Enabled: true
+      minTlsVersion: '1.2'
+      ipSecurityRestrictions: (enableAppGateway == 'true') ? [
+        {
+          vnetSubnetResourceId: subnetId
+          action: 'Allow'
+          tag: 'Default'
+          priority: 200
+          name: 'AllowAppGatewaySubnet'
+        }
+      ] : (enableFrontdoor == 'true') ? [
+        {
+          ipAddress: 'AzureFrontDoor.Backend'
+          tag: 'ServiceTag'
+          action: 'Allow'
+          priority: 100
+          name: 'AllowFrontdoor'
+          headers: {
+            'x-azure-fdid': [
+              '${frontdoor.properties.frontdoorId}'
+            ]
+          }
+        }
+      ] : []
+      healthCheckPath: '/health'
+      netFrameworkVersion: 'v6.0'
+      #disable-next-line BCP037
+      metadata: [
+        {
+          name: 'CURRENT_STACK'
+          value: 'dotnet'
+        }
+      ]
+      appSettings: [
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appinsights.properties.InstrumentationKey
+        }
+        {
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~2'
+        }
+        {
+          name: 'XDT_MicrosoftApplicationInsights_Mode'
+          value: 'recommended'
+        }
+        {
+          name: 'DiagnosticServices_EXTENSION_VERSION'
+          value: '~3'
+        }
+        {
+          name: 'APPINSIGHTS_PROFILERFEATURE_VERSION'
+          value: 'disabled'
+        }
+        {
+          name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION'
+          value: '1.0.0'
+        }
+        {
+          name: 'InstrumentationEngine_EXTENSION_VERSION'
+          value: '~1'
+        }
+        {
+          name: 'SnapshotDebugger_EXTENSION_VERSION'
+          value: 'disabled'
+        }
+        {
+          name: 'XDT_MicrosoftApplicationInsights_BaseExtensions'
+          value: '~1'
+        }
+        {
+          name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Development'
+        }
+        {
+          name: 'DbSource'
+          value: sql.outputs.sqlFqdn
+        }
+        {
+          name: 'DbName'
+          value: sql.outputs.dbName
+        }
+        {
+          name: 'DbUserId'
+          value: sqlUsername
+        }
+        {
+          name: 'DbPassword'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
+        }
+        {
+          name: 'EnableAuth'
+          value: 'true'
+        }
+        {
+          name: 'AzureAdB2C:Instance'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-instance)'
+        }
+        {
+          name: 'AzureAdB2C:Domain'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-domain)'
+        }
+        {
+          name: 'AzureAdB2C:ClientId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-client-id)'
+        }
+        {
+          name: 'AzureAdB2C:SignUpSignInPolicyId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-policy-id)'
+        }
+        {
+          name: 'AzureAdB2C:SignedOutCallbackPath'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-b2c-sign-out-callback-path)'
+        }                
+        {
+          name: 'AzureAd:CallbackPath'
+          value: '/signin-oidc'
+        }
+        {
+          name: 'AzureAd:Instance'
+          value: environment().authentication.loginEndpoint
+        }
+        {
+          name: 'AzureAd:TenantId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-tenant-id)'
+        }
+        {
+          name: 'AzureAd:ClientId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-memberportal-client-id)'
+        }
+        {
+          name: 'AzureAd:ClientSecret'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-memberportal-client-secret)'
+        }
+        {
+          name: 'AzureAd:Scopes'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-scope)'
+        }
+        {
+          name: 'MemberPointsUrl'
+          value: 'https://${pointsapi}.azurewebsites.net'
+        }
+        {
+          name: 'OverrideAuthRedirectHostName'
+          value: (enableAppGateway == 'true') ? 'https://demo.contoso.com/signin-oidc' : (enableFrontdoor == 'true') ? 'https://${frontdoorFqdn}/signin-oidc' : ''
+        }
+      ]
+    }
+  }
+}
+
+var apiapp = '${stackName}apiapp'
+resource apiappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
+  name: apiapp
   location: location
   tags: tags
   sku: {
@@ -259,6 +454,15 @@ resource altidappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   }
 }
 
+module altiddeploy './appdeploy.bicep' = {
+  name: 'deployAlternateId'
+  params: {
+    uri: '${storageAccountUri}-alternate-id-service-${appVersion}.zip?${sas}'
+    parentName: altidapp
+  }
+}
+
+var altidapp = '${stackName}altidapp'
 resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: altidapp
   location: location
@@ -266,7 +470,7 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
-    serverFarmId: altidappplan.id
+    serverFarmId: apiappplan.id
     httpsOnly: true
     siteConfig: {
       healthCheckPath: '/health'
@@ -360,16 +564,15 @@ resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   }
 }
 
-var membersvcapp = '${stackName}membersvcapp'
-resource membersvcappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
-  name: membersvcapp
-  location: location
-  tags: tags
-  sku: {
-    name: appPlanName
+module membersvcdeploy './appdeploy.bicep' = {
+  name: 'deployMemberService'
+  params: {
+    uri: '${storageAccountUri}-member-service-${appVersion}.zip?${sas}'
+    parentName: membersvcapp
   }
 }
 
+var membersvcapp = '${stackName}membersvcapp'
 resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: membersvcapp
   location: location
@@ -377,7 +580,7 @@ resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
-    serverFarmId: membersvcappplan.id
+    serverFarmId: apiappplan.id
     httpsOnly: true
     siteConfig: {
       healthCheckPath: '/health'
@@ -475,16 +678,125 @@ resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
   }
 }
 
-var partapiapp = '${stackName}partapiapp'
-resource partapiappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
-  name: partapiapp
-  location: location
-  tags: tags
-  sku: {
-    name: appPlanName
+module pointsdeploy './appdeploy.bicep' = {
+  name: 'deployPoints'
+  params: {
+    uri: '${storageAccountUri}-member-points-service-${appVersion}.zip?${sas}'
+    parentName: pointsapi
   }
 }
 
+var pointsapi = '${stackName}pointsapi'
+resource pointsapisite 'Microsoft.Web/sites@2021-01-15' = {
+  name: pointsapi
+  location: location
+  tags: tags
+  identity: identity
+  properties: {
+    keyVaultReferenceIdentity: managedIdentityId
+    serverFarmId: apiappplan.id
+    httpsOnly: true
+    siteConfig: {
+      healthCheckPath: '/health'
+      netFrameworkVersion: 'v6.0'
+      #disable-next-line BCP037
+      metadata: [
+        {
+          name: 'CURRENT_STACK'
+          value: 'dotnet'
+        }
+      ]
+      appSettings: [
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appinsights.properties.InstrumentationKey
+        }
+        {
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~2'
+        }
+        {
+          name: 'XDT_MicrosoftApplicationInsights_Mode'
+          value: 'recommended'
+        }
+        {
+          name: 'DiagnosticServices_EXTENSION_VERSION'
+          value: '~3'
+        }
+        {
+          name: 'APPINSIGHTS_PROFILERFEATURE_VERSION'
+          value: 'disabled'
+        }
+        {
+          name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION'
+          value: '1.0.0'
+        }
+        {
+          name: 'InstrumentationEngine_EXTENSION_VERSION'
+          value: '~1'
+        }
+        {
+          name: 'SnapshotDebugger_EXTENSION_VERSION'
+          value: 'disabled'
+        }
+        {
+          name: 'XDT_MicrosoftApplicationInsights_BaseExtensions'
+          value: '~1'
+        }
+        {
+          name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Development'
+        }
+        {
+          name: 'DbSource'
+          value: sql.outputs.sqlFqdn
+        }
+        {
+          name: 'DbName'
+          value: sql.outputs.dbName
+        }
+        {
+          name: 'DbUserId'
+          value: sqlUsername
+        }
+        {
+          name: 'DbPassword'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
+        }
+        {
+          name: 'AzureAd:Instance'
+          value: environment().authentication.loginEndpoint
+        }
+        {
+          name: 'AzureAd:TenantId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-tenant-id)'
+        }
+        {
+          name: 'AzureAd:Domain'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-domain)'
+        }
+        {
+          name: 'AzureAd:ClientId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-client-id)'
+        }
+        {
+          name: 'AzureAd:Audience'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-audience)'
+        }
+      ]
+    }
+  }
+}
+
+module partnerapideploy './appdeploy.bicep' = {
+  name: 'deployPartnerAPI'
+  params: {
+    uri: '${storageAccountUri}-partner-api-${appVersion}.zip?${sas}'
+    parentName: partapiapp
+  }
+}
+
+var partapiapp = '${stackName}partapiapp'
 resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: partapiapp
   location: location
@@ -492,7 +804,7 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
-    serverFarmId: partapiappplan.id
+    serverFarmId: apiappplan.id
     httpsOnly: true
     siteConfig: {
       healthCheckPath: '/health'
@@ -577,6 +889,26 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
           name: 'DisableQueueDelay'
           value: 'true'
         }
+        {
+          name: 'AzureAd:Instance'
+          value: environment().authentication.loginEndpoint
+        }
+        {
+          name: 'AzureAd:TenantId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-tenant-id)'
+        }
+        {
+          name: 'AzureAd:Domain'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-domain)'
+        }
+        {
+          name: 'AzureAd:ClientId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-client-id)'
+        }
+        {
+          name: 'AzureAd:Audience'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-audience)'
+        }
       ]
     }
   }
@@ -604,6 +936,14 @@ resource backendappplan 'Microsoft.Web/serverfarms@2020-10-01' = {
   sku: {
     name: 'Y1'
     tier: 'Dynamic'
+  }
+}
+
+module backendstoragequeuedeploy './appdeploy.bicep' = {
+  name: 'deployBackendStorageQueue'
+  params: {
+    uri: '${storageAccountUri}-storage-queue-func-${appVersion}.zip?${sas}'
+    parentName: backendapp
   }
 }
 
@@ -688,6 +1028,8 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
 }
 
 output cs string = csapp
+output mem string = memberportal
+output pointsapi string = pointsapi
 output altid string = altidapp
 output partapi string = partapiapp
 output membersvc string = membersvcapp
