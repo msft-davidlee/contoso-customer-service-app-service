@@ -102,7 +102,7 @@ resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
 }
 
 var storageAccountUri = 'https://${buildAccountName}.blob.${environment().suffixes.storage}/apps/contoso-demo'
-var sasExp = dateTimeAdd(utc, 'P90D')
+var sasExp = dateTimeAdd(utc, 'P30D')
 var sas = listServiceSAS(buildAccountResourceId, '2021-04-01', {
   canonicalizedResource: '/blob/${buildAccountName}/apps'
   signedResource: 'c'
@@ -888,6 +888,26 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
         {
           name: 'DisableQueueDelay'
           value: 'true'
+        }
+        {
+          name: 'AzureAd:Instance'
+          value: environment().authentication.loginEndpoint
+        }
+        {
+          name: 'AzureAd:TenantId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-tenant-id)'
+        }
+        {
+          name: 'AzureAd:Domain'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-domain)'
+        }
+        {
+          name: 'AzureAd:ClientId'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-client-id)'
+        }
+        {
+          name: 'AzureAd:Audience'
+          value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-aad-app-audience)'
         }
       ]
     }
