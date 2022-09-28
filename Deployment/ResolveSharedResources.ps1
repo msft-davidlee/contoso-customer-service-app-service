@@ -2,6 +2,8 @@ param(
     [string]$BUILD_ENV,
     [string]$ArdSolutionId)
 
+$ErrorActionPreference = "Stop"
+    
 $kv = (az resource list --tag ard-resource-id=shared-key-vault | ConvertFrom-Json)
 if (!$kv) {
     throw "Unable to find eligible shared key vault resource!"
