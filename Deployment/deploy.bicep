@@ -90,13 +90,13 @@ resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
 var storageAccountUri = 'https://${buildAccountName}.blob.${environment().suffixes.storage}/apps/contoso-demo'
 var sasExp = dateTimeAdd(utc, 'P30D')
 var sas = listServiceSAS(buildAccountResourceId, '2021-04-01', {
-  canonicalizedResource: '/blob/${buildAccountName}/apps'
-  signedResource: 'c'
-  signedProtocol: 'https'
-  signedPermission: 'rl'
-  signedServices: 'b'
-  signedExpiry: sasExp
-}).serviceSasToken
+    canonicalizedResource: '/blob/${buildAccountName}/apps'
+    signedResource: 'c'
+    signedProtocol: 'https'
+    signedPermission: 'rl'
+    signedServices: 'b'
+    signedExpiry: sasExp
+  }).serviceSasToken
 
 module csappdeploy './appdeploy.bicep' = {
   name: 'deployCustomerService'
@@ -110,7 +110,7 @@ module csappdeploy './appdeploy.bicep' = {
 }
 
 var csapp = '${stackName}csapp'
-resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
+resource csappsite 'Microsoft.Web/sites@2022-03-01' = {
   name: csapp
   location: location
   identity: identity
@@ -274,7 +274,7 @@ module memberportaldeploy './appdeploy.bicep' = {
 }
 // Member Portal website
 var memberportal = '${stackName}mempapp'
-resource mempappsite 'Microsoft.Web/sites@2021-01-15' = {
+resource mempappsite 'Microsoft.Web/sites@2022-03-01' = {
   name: memberportal
   location: location
   identity: identity
@@ -455,7 +455,7 @@ module altiddeploy './appdeploy.bicep' = {
 }
 
 var altidapp = '${stackName}altidapp'
-resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
+resource altidappsite 'Microsoft.Web/sites@2022-03-01' = {
   name: altidapp
   location: location
   identity: identity
@@ -567,7 +567,7 @@ module membersvcdeploy './appdeploy.bicep' = {
 }
 
 var membersvcapp = '${stackName}membersvcapp'
-resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
+resource membersvcappsite 'Microsoft.Web/sites@2022-03-01' = {
   name: membersvcapp
   location: location
   identity: identity
@@ -683,7 +683,7 @@ module pointsdeploy './appdeploy.bicep' = {
 }
 
 var pointsapi = '${stackName}pointsapi'
-resource pointsapisite 'Microsoft.Web/sites@2021-01-15' = {
+resource pointsapisite 'Microsoft.Web/sites@2022-03-01' = {
   name: pointsapi
   location: location
   identity: identity
@@ -795,7 +795,7 @@ module partnerapideploy './appdeploy.bicep' = {
 }
 
 var partapiapp = '${stackName}partapiapp'
-resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
+resource partapiappsite 'Microsoft.Web/sites@2022-03-01' = {
   name: partapiapp
   location: location
   identity: identity
@@ -912,7 +912,7 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
 }
 
 var backendapp = '${stackName}backendapp'
-resource backendappStr 'Microsoft.Storage/storageAccounts@2021-02-01' = {
+resource backendappStr 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: backendapp
   location: location
   sku: {
@@ -925,7 +925,7 @@ resource backendappStr 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   }
 }
 
-resource backendappplan 'Microsoft.Web/serverfarms@2020-10-01' = {
+resource backendappplan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: backendapp
   location: location
   sku: {
@@ -946,7 +946,7 @@ module backendstoragequeuedeploy './appdeploy.bicep' = {
 }
 
 var backendappConnection = 'DefaultEndpointsProtocol=https;AccountName=${backendappStr.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(backendappStr.id, backendappStr.apiVersion).keys[0].value}'
-resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
+resource backendfuncapp 'Microsoft.Web/sites@2022-03-01' = {
   name: backendapp
   location: location
   kind: 'functionapp'
@@ -1035,7 +1035,7 @@ output sqlserver string = sql.outputs.sqlFqdn
 output sqlusername string = sqlUsername
 output dbname string = sql.outputs.dbName
 
-resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAppGateway == 'true') {
+resource appGwIP 'Microsoft.Network/publicIPAddresses@2022-01-01' = if (enableAppGateway == 'true') {
   name: stackName
   location: location
   properties: {
