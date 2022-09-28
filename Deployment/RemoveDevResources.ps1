@@ -1,13 +1,13 @@
 param(
-    [Parameter(Mandatory = $true)][string]$StackNameTag)
+    [Parameter(Mandatory = $true)][string]$ArdSolutionId)
 
 $BUILD_ENV = "dev"
-$groups = az group list --tag stack-environment=$BUILD_ENV | ConvertFrom-Json
-$resourceGroupName = ($groups | Where-Object { $_.tags.'stack-name' -eq 'appservice' -and $_.tags.'stack-environment' -eq $BUILD_ENV }).name
+$groups = az group list --tag ard-environment=$BUILD_ENV | ConvertFrom-Json
+$resourceGroupName = ($groups | Where-Object { $_.tags.'ard-solution-id' -eq $ArdSolutionId -and $_.tags.'ard-environment' -eq $BUILD_ENV }).name
 
 $count = 0
-$stackRes = (az resource list --tag stack-name=$StackNameTag | ConvertFrom-Json)
-$devRes = $stackRes | Where-Object { $_.tags.'stack-environment' -eq 'dev' }
+$ardRes = (az resource list --tag ard-solution-id=$ArdSolutionId | ConvertFrom-Json)
+$devRes = $ardRes | Where-Object { $_.tags.'ard-environment' -eq $BUILD_ENV }
 if ($devRes -and $devRes.Length -gt 0) {
     $devRes | ForEach-Object {
         if ($_.resourceGroup -eq $resourceGroupName) {

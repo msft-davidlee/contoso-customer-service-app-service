@@ -1,16 +1,13 @@
 param prefix string
 param appEnvironment string
-param branch string
 param location string = 'centralus'
 param sharedResourceGroup string
 param keyVaultName string
 param managedIdentityId string
-param version string
 param enableAppGateway string
 param subnetId string
 param enableFrontdoor string
 param enableAPIM string
-param stackTagName string
 param appVersion string
 param buildAccountName string
 param buildAccountResourceId string
@@ -25,17 +22,9 @@ var identity = {
   }
 }
 
-var tags = {
-  'stack-name': stackTagName
-  'stack-environment': appEnvironment
-  'stack-version': version
-  'stack-branch': branch
-}
-
 resource appinsights 'Microsoft.Insights/components@2020-02-02' = {
   name: stackName
   location: location
-  tags: tags
   kind: 'web'
   properties: {
     Application_Type: 'web'
@@ -47,7 +36,6 @@ resource appinsights 'Microsoft.Insights/components@2020-02-02' = {
 resource str 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: stackName
   location: location
-  tags: tags
   kind: 'StorageV2'
   sku: {
     name: 'Standard_LRS'
@@ -84,7 +72,6 @@ module sql './sql.bicep' = {
   params: {
     stackName: stackName
     sqlPassword: kv.getSecret('contoso-customer-service-sql-password')
-    tags: tags
     location: location
   }
 }
@@ -95,7 +82,6 @@ var webapp = '${stackName}web'
 resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   name: webapp
   location: location
-  tags: tags
   sku: {
     name: appPlanName
   }
@@ -127,7 +113,6 @@ var csapp = '${stackName}csapp'
 resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: csapp
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -292,7 +277,6 @@ var memberportal = '${stackName}mempapp'
 resource mempappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: memberportal
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -454,7 +438,6 @@ var apiapp = '${stackName}apiapp'
 resource apiappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   name: apiapp
   location: location
-  tags: tags
   sku: {
     name: appPlanName
   }
@@ -475,7 +458,6 @@ var altidapp = '${stackName}altidapp'
 resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: altidapp
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -588,7 +570,6 @@ var membersvcapp = '${stackName}membersvcapp'
 resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: membersvcapp
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -705,7 +686,6 @@ var pointsapi = '${stackName}pointsapi'
 resource pointsapisite 'Microsoft.Web/sites@2021-01-15' = {
   name: pointsapi
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -818,7 +798,6 @@ var partapiapp = '${stackName}partapiapp'
 resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
   name: partapiapp
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -944,13 +923,11 @@ resource backendappStr 'Microsoft.Storage/storageAccounts@2021-02-01' = {
     supportsHttpsTrafficOnly: true
     allowBlobPublicAccess: false
   }
-  tags: tags
 }
 
 resource backendappplan 'Microsoft.Web/serverfarms@2020-10-01' = {
   name: backendapp
   location: location
-  tags: tags
   sku: {
     name: 'Y1'
     tier: 'Dynamic'
@@ -972,7 +949,6 @@ var backendappConnection = 'DefaultEndpointsProtocol=https;AccountName=${backend
 resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
   name: backendapp
   location: location
-  tags: tags
   kind: 'functionapp'
   identity: identity
   properties: {
@@ -1062,7 +1038,6 @@ output dbname string = sql.outputs.dbName
 resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAppGateway == 'true') {
   name: stackName
   location: location
-  tags: tags
   properties: {
     publicIPAllocationMethod: 'Static'
     dnsSettings: {
@@ -1081,7 +1056,6 @@ var appGwId = resourceId('Microsoft.Network/applicationGateways', stackName)
 resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
   name: stackName
   location: location
-  tags: tags
   identity: identity
   properties: {
     sslCertificates: [
@@ -1221,7 +1195,6 @@ var frontdoorFqdn = '${stackName}.azurefd.net'
 resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdoor == 'true') {
   name: stackName
   location: 'global'
-  tags: tags
   properties: {
     healthProbeSettings: [
       {
@@ -1307,7 +1280,6 @@ resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdo
 resource apim 'Microsoft.ApiManagement/service@2021-01-01-preview' = if (enableAPIM == 'true') {
   name: stackName
   location: location
-  tags: tags
   sku: {
     name: 'Developer'
     capacity: 1

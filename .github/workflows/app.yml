@@ -9,8 +9,8 @@ on:
         required: false
         default: 'default'
 env:
-  APP_VERSION: 'v5.15'
-  STACK_NAME_TAG: 'contoso-customer-service-app-service'
+  APP_VERSION: 'v6.0'
+  ARD_SOLUTION_ID_TAG: 'app-service-demo'
 
 jobs:
   setup:
@@ -45,20 +45,20 @@ jobs:
       - name: Azure CLI Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.MS_AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: true
 
       - id: removedevresources
         if: needs.setup.outputs.build_env == 'prod'
         name: Remove Dev Resources
         run: |
-          .\Deployment\RemoveDevResources.ps1 -StackNameTag ${{ env.STACK_NAME_TAG }}
+          .\Deployment\RemoveDevResources.ps1 -ArdSolutionId ${{ env.ARD_SOLUTION_ID_TAG }}
 
       - id: resolve-shared-resources
         name: Resolve shared resources
         working-directory: .\deployment
         run: |
-          .\ResolveSharedResources.ps1 -BUILD_ENV ${{ needs.setup.outputs.build_env }} -StackTagName ${{ env.STACK_NAME_TAG }}
+          .\ResolveSharedResources.ps1 -BUILD_ENV ${{ needs.setup.outputs.build_env }} -ArdSolutionId ${{ env.ARD_SOLUTION_ID_TAG }}
 
       - name: Build azure environment and deploy apps
         id: deploy
@@ -68,18 +68,15 @@ jobs:
           resourceGroupName: ${{ steps.resolve-shared-resources.outputs.appResourceGroup }}
           template: ./deployment/deploy.bicep
           parameters: >
-            version=${{ github.run_number }}
             keyVaultName=${{ steps.resolve-shared-resources.outputs.keyVaultName }}
             managedIdentityId=${{ steps.resolve-shared-resources.outputs.managedIdentityId }}
             prefix=${{ secrets.PREFIX }}
             appEnvironment=${{ needs.setup.outputs.build_env }}
-            branch=${{ github.ref }}
             sharedResourceGroup=${{ steps.resolve-shared-resources.outputs.sharedResourceGroup }}
             enableAppGateway=${{ steps.resolve-shared-resources.outputs.enableAppGateway }}
             subnetId=${{ steps.resolve-shared-resources.outputs.subnetId }}
             enableFrontdoor=${{ steps.resolve-shared-resources.outputs.enableFrontdoor }}
             enableAPIM=${{ steps.resolve-shared-resources.outputs.enableAPIM }}
-            stackTagName=${{ env.STACK_NAME_TAG }}
             buildAccountName=${{ steps.resolve-shared-resources.outputs.buildAccountName }}
             buildAccountResourceId=${{ steps.resolve-shared-resources.outputs.buildAccountResourceId }}
             appVersion=${{ env.APP_VERSION }}
@@ -91,7 +88,7 @@ jobs:
           .\ResolveSqlConnection.ps1 `
           -APP_VERSION ${{ env.APP_VERSION }} `
           -BUILD_ENV ${{ needs.setup.outputs.build_env }} `
-          -StackNameTag ${{ env.STACK_NAME_TAG }} `
+          -ArdSolutionId ${{ env.ARD_SOLUTION_ID_TAG }} `
           -TEMPDIR ${{ github.workspace }}
 
       - id: deploy_db
