@@ -960,8 +960,8 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
       webSocketsEnabled: true
       appSettings: [
         {
-          'name': 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          'value': appinsights.properties.InstrumentationKey
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appinsights.properties.InstrumentationKey
         }
         {
           name: 'DbSource'
@@ -980,44 +980,44 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
         }
         {
-          'name': 'AzureWebJobsDashboard'
-          'value': backendappConnection
+          name: 'AzureWebJobsDashboard'
+          value: backendappConnection
         }
         {
-          'name': 'AzureWebJobsStorage'
-          'value': backendappConnection
+          name: 'AzureWebJobsStorage'
+          value: backendappConnection
         }
         {
-          'name': 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-          'value': backendappConnection
+          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+          value: backendappConnection
         }
         {
-          'name': 'WEBSITE_CONTENTSHARE'
-          'value': 'functions2021'
+          name: 'WEBSITE_CONTENTSHARE'
+          value: 'functions2021'
         }
         {
-          'name': 'QueueName'
-          'value': queueName
+          name: 'QueueName'
+          value: queueName
         }
         {
-          'name': 'Connection'
-          'value': strConnectionString
+          name: 'Connection'
+          value: strConnectionString
         }
         {
-          'name': 'FUNCTIONS_WORKER_RUNTIME'
-          'value': 'dotnet'
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: 'dotnet'
         }
         {
-          'name': 'FUNCTIONS_EXTENSION_VERSION'
-          'value': '~4'
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~4'
         }
         {
-          'name': 'ApplicationInsightsAgent_EXTENSION_VERSION'
-          'value': '~2'
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~2'
         }
         {
-          'name': 'XDT_MicrosoftApplicationInsights_Mode'
-          'value': 'default'
+          name: 'XDT_MicrosoftApplicationInsights_Mode'
+          value: 'default'
         }
       ]
     }
