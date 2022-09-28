@@ -2,16 +2,9 @@ param(
     [string]$BUILD_ENV,
     [string]$ArdSolutionId)
 
-$platformRes = (az resource list --tag ard-resource-id=shared-key-vault | ConvertFrom-Json)
-if (!$platformRes) {
-    throw "Unable to find eligible shared key vault resource!"
-}
-if ($platformRes.Length -eq 0) {
-    throw "Unable to find 'ANY' eligible shared key vault resource!"
-}
-$kv = ($platformRes | Where-Object { $_.tags.'ard-environment' -eq 'prod' })
+$kv = (az resource list --tag ard-resource-id=shared-key-vault | ConvertFrom-Json)
 if (!$kv) {
-    throw "Unable to find Key Vault resource!"
+    throw "Unable to find eligible shared key vault resource!"
 }
 
 $kvName = $kv.name
@@ -35,15 +28,7 @@ Write-Host "::set-output name=sqlPassword::$sqlPassword"
 $mid = (az identity list -g appservice-dev | ConvertFrom-Json).id
 Write-Host "::set-output name=managedIdentityId::$mid"
 
-$platformRes = (az resource list --tag ard-resource-id=shared-app-configuration | ConvertFrom-Json)
-if (!$platformRes) {
-    throw "Unable to find eligible shared configuration resource!"
-}
-if ($platformRes.Length -eq 0) {
-    throw "Unable to find 'ANY' eligible shared configuration resource!"
-}
-
-$config = ($platformRes | Where-Object { $_.tags.'ard-environment' -eq 'prod' })
+$config = (az resource list --tag ard-resource-id=shared-app-configuration | ConvertFrom-Json)
 if (!$config) {
     throw "Unable to find App Config resource!"
 }
