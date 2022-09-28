@@ -79,13 +79,9 @@ Write-Host "::set-output name=enableAPIM::$enableAPIM"
 
 # Write-Host "::set-output name=subnetId::$subnetId"
 
-$platformRes = (az resource list --tag ard-resource-id=shared-storage | ConvertFrom-Json)
-$strs = ($platformRes | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" -and $_.tags.'ard-environment' -eq 'prod' })
+$strs = (az resource list --tag ard-resource-id=shared-storage | ConvertFrom-Json)
 if (!$strs) {
     throw "Unable to find eligible platform storage account!"
-}
-if ($strs.Length -eq 0) {
-    throw "Unable to find 'ANY' eligible storage resource!"
 }
 $BuildAccountName = $strs.name
 Write-Host "::set-output name=buildAccountName::$BuildAccountName"
