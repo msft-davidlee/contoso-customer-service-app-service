@@ -12,6 +12,7 @@ param appVersion string
 param buildAccountName string
 param buildAccountResourceId string
 param utc string = utcNow()
+param deploySuffix string
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -68,7 +69,7 @@ resource kv 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
 }
 
 module sql './sql.bicep' = {
-  name: 'deploySQL'
+  name: 'deploySQL-${deploySuffix}'
   params: {
     stackName: stackName
     sqlPassword: kv.getSecret('contoso-customer-service-sql-password')
@@ -99,7 +100,7 @@ var sas = listServiceSAS(buildAccountResourceId, '2021-04-01', {
   }).serviceSasToken
 
 module csappdeploy './appdeploy.bicep' = {
-  name: 'deployCustomerService'
+  name: 'deployCustomerService-${deploySuffix}'
   dependsOn: [
     csappsite
   ]
@@ -154,8 +155,8 @@ resource csappsite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -263,7 +264,7 @@ resource csappsite 'Microsoft.Web/sites@2022-03-01' = {
 }
 
 module memberportaldeploy './appdeploy.bicep' = {
-  name: 'deployMemberPortal'
+  name: 'deployMemberPortal-${deploySuffix}'
   dependsOn: [
     mempappsite
   ]
@@ -318,8 +319,8 @@ resource mempappsite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -444,7 +445,7 @@ resource apiappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
 }
 
 module altiddeploy './appdeploy.bicep' = {
-  name: 'deployAlternateId'
+  name: 'deployAlternateId-${deploySuffix}'
   dependsOn: [
     altidappsite
   ]
@@ -475,8 +476,8 @@ resource altidappsite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -556,7 +557,7 @@ resource altidappsite 'Microsoft.Web/sites@2022-03-01' = {
 }
 
 module membersvcdeploy './appdeploy.bicep' = {
-  name: 'deployMemberService'
+  name: 'deployMemberService-${deploySuffix}'
   dependsOn: [
     membersvcappsite
   ]
@@ -587,8 +588,8 @@ resource membersvcappsite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -672,7 +673,7 @@ resource membersvcappsite 'Microsoft.Web/sites@2022-03-01' = {
 }
 
 module pointsdeploy './appdeploy.bicep' = {
-  name: 'deployPoints'
+  name: 'deployPoints-${deploySuffix}'
   dependsOn: [
     pointsapisite
   ]
@@ -703,8 +704,8 @@ resource pointsapisite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -784,7 +785,7 @@ resource pointsapisite 'Microsoft.Web/sites@2022-03-01' = {
 }
 
 module partnerapideploy './appdeploy.bicep' = {
-  name: 'deployPartnerAPI'
+  name: 'deployPartnerAPI-${deploySuffix}'
   dependsOn: [
     partapiappsite
   ]
@@ -815,8 +816,8 @@ resource partapiappsite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -935,7 +936,7 @@ resource backendappplan 'Microsoft.Web/serverfarms@2022-03-01' = {
 }
 
 module backendstoragequeuedeploy './appdeploy.bicep' = {
-  name: 'deployBackendStorageQueue'
+  name: 'deployBackendStorageQueue-${deploySuffix}'
   dependsOn: [
     backendfuncapp
   ]
@@ -960,8 +961,8 @@ resource backendfuncapp 'Microsoft.Web/sites@2022-03-01' = {
       webSocketsEnabled: true
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'DbSource'
@@ -1352,7 +1353,7 @@ resource apimlogger 'Microsoft.ApiManagement/service/loggers@2021-04-01-preview'
   properties: {
     loggerType: 'applicationInsights'
     credentials: {
-      instrumentationKey: appinsights.properties.InstrumentationKey
+      instrumentationKey: appinsights.properties.ConnectionString
     }
     resourceId: appinsights.id
   }

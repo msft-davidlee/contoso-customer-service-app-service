@@ -1,12 +1,13 @@
 param(
-    [Parameter(Mandatory = $true)][string]$ArdSolutionId)
+    [Parameter(Mandatory = $true)][string]$ArdSolutionId,
+    [Parameter(Mandatory = $false)][string]$BUILD_ENV)
 
 $ErrorActionPreference = "Stop"
-$BUILD_ENV = "dev"
+if (!$BUILD_ENV) {
+    $BUILD_ENV = "dev"
+}
 $groups = az group list --tag ard-environment=$BUILD_ENV | ConvertFrom-Json
 $resourceGroupName = ($groups | Where-Object { $_.tags.'ard-solution-id' -eq $ArdSolutionId -and $_.tags.'ard-environment' -eq $BUILD_ENV }).name
-
-
 
 $count = 0
 $ardRes = (az resource list --tag ard-solution-id=$ArdSolutionId | ConvertFrom-Json)
