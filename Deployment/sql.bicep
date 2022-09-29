@@ -1,6 +1,5 @@
 param location string
 param stackName string
-param tags object
 @secure()
 param sqlPassword string
 
@@ -9,7 +8,6 @@ var sqlUsername = 'app'
 resource sql 'Microsoft.Sql/servers@2021-02-01-preview' = {
   name: stackName
   location: location
-  tags: tags
   properties: {
     administratorLogin: sqlUsername
     administratorLoginPassword: sqlPassword
@@ -24,7 +22,6 @@ resource db 'Microsoft.Sql/servers/databases@2021-02-01-preview' = {
   name: dbName
   parent: sql
   location: location
-  tags: tags
   sku: {
     name: 'Basic'
     tier: 'Basic'

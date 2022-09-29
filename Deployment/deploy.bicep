@@ -1,16 +1,13 @@
 param prefix string
 param appEnvironment string
-param branch string
 param location string = 'centralus'
 param sharedResourceGroup string
 param keyVaultName string
 param managedIdentityId string
-param version string
 param enableAppGateway string
 param subnetId string
 param enableFrontdoor string
 param enableAPIM string
-param stackTagName string
 param appVersion string
 param buildAccountName string
 param buildAccountResourceId string
@@ -25,17 +22,9 @@ var identity = {
   }
 }
 
-var tags = {
-  'stack-name': stackTagName
-  'stack-environment': appEnvironment
-  'stack-version': version
-  'stack-branch': branch
-}
-
 resource appinsights 'Microsoft.Insights/components@2020-02-02' = {
   name: stackName
   location: location
-  tags: tags
   kind: 'web'
   properties: {
     Application_Type: 'web'
@@ -47,7 +36,6 @@ resource appinsights 'Microsoft.Insights/components@2020-02-02' = {
 resource str 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: stackName
   location: location
-  tags: tags
   kind: 'StorageV2'
   sku: {
     name: 'Standard_LRS'
@@ -84,7 +72,6 @@ module sql './sql.bicep' = {
   params: {
     stackName: stackName
     sqlPassword: kv.getSecret('contoso-customer-service-sql-password')
-    tags: tags
     location: location
   }
 }
@@ -95,7 +82,6 @@ var webapp = '${stackName}web'
 resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   name: webapp
   location: location
-  tags: tags
   sku: {
     name: appPlanName
   }
@@ -104,13 +90,13 @@ resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
 var storageAccountUri = 'https://${buildAccountName}.blob.${environment().suffixes.storage}/apps/contoso-demo'
 var sasExp = dateTimeAdd(utc, 'P30D')
 var sas = listServiceSAS(buildAccountResourceId, '2021-04-01', {
-  canonicalizedResource: '/blob/${buildAccountName}/apps'
-  signedResource: 'c'
-  signedProtocol: 'https'
-  signedPermission: 'rl'
-  signedServices: 'b'
-  signedExpiry: sasExp
-}).serviceSasToken
+    canonicalizedResource: '/blob/${buildAccountName}/apps'
+    signedResource: 'c'
+    signedProtocol: 'https'
+    signedPermission: 'rl'
+    signedServices: 'b'
+    signedExpiry: sasExp
+  }).serviceSasToken
 
 module csappdeploy './appdeploy.bicep' = {
   name: 'deployCustomerService'
@@ -124,10 +110,9 @@ module csappdeploy './appdeploy.bicep' = {
 }
 
 var csapp = '${stackName}csapp'
-resource csappsite 'Microsoft.Web/sites@2021-01-15' = {
+resource csappsite 'Microsoft.Web/sites@2022-03-01' = {
   name: csapp
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -289,10 +274,9 @@ module memberportaldeploy './appdeploy.bicep' = {
 }
 // Member Portal website
 var memberportal = '${stackName}mempapp'
-resource mempappsite 'Microsoft.Web/sites@2021-01-15' = {
+resource mempappsite 'Microsoft.Web/sites@2022-03-01' = {
   name: memberportal
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -454,7 +438,6 @@ var apiapp = '${stackName}apiapp'
 resource apiappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
   name: apiapp
   location: location
-  tags: tags
   sku: {
     name: appPlanName
   }
@@ -472,10 +455,9 @@ module altiddeploy './appdeploy.bicep' = {
 }
 
 var altidapp = '${stackName}altidapp'
-resource altidappsite 'Microsoft.Web/sites@2021-01-15' = {
+resource altidappsite 'Microsoft.Web/sites@2022-03-01' = {
   name: altidapp
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -585,10 +567,9 @@ module membersvcdeploy './appdeploy.bicep' = {
 }
 
 var membersvcapp = '${stackName}membersvcapp'
-resource membersvcappsite 'Microsoft.Web/sites@2021-01-15' = {
+resource membersvcappsite 'Microsoft.Web/sites@2022-03-01' = {
   name: membersvcapp
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -702,10 +683,9 @@ module pointsdeploy './appdeploy.bicep' = {
 }
 
 var pointsapi = '${stackName}pointsapi'
-resource pointsapisite 'Microsoft.Web/sites@2021-01-15' = {
+resource pointsapisite 'Microsoft.Web/sites@2022-03-01' = {
   name: pointsapi
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -815,10 +795,9 @@ module partnerapideploy './appdeploy.bicep' = {
 }
 
 var partapiapp = '${stackName}partapiapp'
-resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
+resource partapiappsite 'Microsoft.Web/sites@2022-03-01' = {
   name: partapiapp
   location: location
-  tags: tags
   identity: identity
   properties: {
     keyVaultReferenceIdentity: managedIdentityId
@@ -933,7 +912,7 @@ resource partapiappsite 'Microsoft.Web/sites@2021-01-15' = {
 }
 
 var backendapp = '${stackName}backendapp'
-resource backendappStr 'Microsoft.Storage/storageAccounts@2021-02-01' = {
+resource backendappStr 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: backendapp
   location: location
   sku: {
@@ -944,13 +923,11 @@ resource backendappStr 'Microsoft.Storage/storageAccounts@2021-02-01' = {
     supportsHttpsTrafficOnly: true
     allowBlobPublicAccess: false
   }
-  tags: tags
 }
 
-resource backendappplan 'Microsoft.Web/serverfarms@2020-10-01' = {
+resource backendappplan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: backendapp
   location: location
-  tags: tags
   sku: {
     name: 'Y1'
     tier: 'Dynamic'
@@ -969,10 +946,9 @@ module backendstoragequeuedeploy './appdeploy.bicep' = {
 }
 
 var backendappConnection = 'DefaultEndpointsProtocol=https;AccountName=${backendappStr.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(backendappStr.id, backendappStr.apiVersion).keys[0].value}'
-resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
+resource backendfuncapp 'Microsoft.Web/sites@2022-03-01' = {
   name: backendapp
   location: location
-  tags: tags
   kind: 'functionapp'
   identity: identity
   properties: {
@@ -984,8 +960,8 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
       webSocketsEnabled: true
       appSettings: [
         {
-          'name': 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          'value': appinsights.properties.InstrumentationKey
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appinsights.properties.InstrumentationKey
         }
         {
           name: 'DbSource'
@@ -1004,44 +980,44 @@ resource backendfuncapp 'Microsoft.Web/sites@2020-12-01' = {
           value: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=contoso-customer-service-sql-password)'
         }
         {
-          'name': 'AzureWebJobsDashboard'
-          'value': backendappConnection
+          name: 'AzureWebJobsDashboard'
+          value: backendappConnection
         }
         {
-          'name': 'AzureWebJobsStorage'
-          'value': backendappConnection
+          name: 'AzureWebJobsStorage'
+          value: backendappConnection
         }
         {
-          'name': 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-          'value': backendappConnection
+          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+          value: backendappConnection
         }
         {
-          'name': 'WEBSITE_CONTENTSHARE'
-          'value': 'functions2021'
+          name: 'WEBSITE_CONTENTSHARE'
+          value: 'functions2021'
         }
         {
-          'name': 'QueueName'
-          'value': queueName
+          name: 'QueueName'
+          value: queueName
         }
         {
-          'name': 'Connection'
-          'value': strConnectionString
+          name: 'Connection'
+          value: strConnectionString
         }
         {
-          'name': 'FUNCTIONS_WORKER_RUNTIME'
-          'value': 'dotnet'
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: 'dotnet'
         }
         {
-          'name': 'FUNCTIONS_EXTENSION_VERSION'
-          'value': '~4'
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~4'
         }
         {
-          'name': 'ApplicationInsightsAgent_EXTENSION_VERSION'
-          'value': '~2'
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~2'
         }
         {
-          'name': 'XDT_MicrosoftApplicationInsights_Mode'
-          'value': 'default'
+          name: 'XDT_MicrosoftApplicationInsights_Mode'
+          value: 'default'
         }
       ]
     }
@@ -1059,10 +1035,9 @@ output sqlserver string = sql.outputs.sqlFqdn
 output sqlusername string = sqlUsername
 output dbname string = sql.outputs.dbName
 
-resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAppGateway == 'true') {
+resource appGwIP 'Microsoft.Network/publicIPAddresses@2022-01-01' = if (enableAppGateway == 'true') {
   name: stackName
   location: location
-  tags: tags
   properties: {
     publicIPAllocationMethod: 'Static'
     dnsSettings: {
@@ -1076,143 +1051,142 @@ resource appGwIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = if (enableAp
 }
 
 var csappsiteFqdn = '${csapp}.azurewebsites.net'
-var appGwId = resourceId('Microsoft.Network/applicationGateways', stackName)
+// var appGwId = resourceId('Microsoft.Network/applicationGateways', stackName)
 
-resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
-  name: stackName
-  location: location
-  tags: tags
-  identity: identity
-  properties: {
-    sslCertificates: [
-      {
-        name: 'appgwcert'
-        properties: {
-          keyVaultSecretId: 'https://${keyVaultName}${environment().suffixes.keyvaultDns}/secrets/appgwcert'
-        }
-      }
-    ]
-    sku: {
-      name: 'WAF_v2'
-      tier: 'WAF_v2'
-    }
-    autoscaleConfiguration: {
-      minCapacity: 1
-      maxCapacity: 2
-    }
-    gatewayIPConfigurations: [
-      {
-        name: 'appGatewayIpConfig'
-        properties: {
-          subnet: {
-            id: subnetId
-          }
-        }
-      }
-    ]
-    frontendIPConfigurations: [
-      {
-        name: 'appGwPublicFrontendIp'
-        properties: {
-          publicIPAddress: {
-            id: appGwIP.id
-          }
-        }
-      }
-    ]
-    frontendPorts: [
-      {
-        name: 'port_https'
-        properties: {
-          port: 443
-        }
-      }
-    ]
-    backendAddressPools: [
-      {
-        name: 'customer-service'
-        properties: {
-          backendAddresses: [
-            {
-              fqdn: csappsiteFqdn
-            }
-          ]
-        }
-      }
-    ]
-    backendHttpSettingsCollection: [
-      {
-        name: 'customer-service-app-https-setting'
-        properties: {
-          port: 443
-          protocol: 'Https'
-          cookieBasedAffinity: 'Disabled'
-          hostName: csappsiteFqdn
-          pickHostNameFromBackendAddress: false
-          affinityCookieName: 'ApplicationGatewayAffinity'
-          requestTimeout: 20
-          probe: {
-            id: '${appGwId}/probes/customer-service-app-https-setting-probe'
-          }
-        }
-      }
-    ]
-    httpListeners: [
-      {
-        name: 'customer-service-app'
-        properties: {
-          frontendIPConfiguration: {
-            id: '${appGwId}/frontendIPConfigurations/appGwPublicFrontendIp'
-          }
-          frontendPort: {
-            id: '${appGwId}/frontendPorts/port_https'
-          }
-          protocol: 'Https'
-          sslCertificate: {
-            id: '${appGwId}/sslCertificates/appgwcert'
-          }
-        }
-      }
-    ]
-    requestRoutingRules: [
-      {
-        name: 'frontend-to-customer-service-app'
-        properties: {
-          ruleType: 'Basic'
-          httpListener: {
-            id: '${appGwId}/httpListeners/customer-service-app'
-          }
-          backendAddressPool: {
-            id: '${appGwId}/backendAddressPools/customer-service'
-          }
-          backendHttpSettings: {
-            id: '${appGwId}/backendHttpSettingsCollection/customer-service-app-https-setting'
-          }
-        }
-      }
-    ]
-    probes: [
-      {
-        name: 'customer-service-app-https-setting-probe'
-        properties: {
-          protocol: 'Https'
-          host: csappsiteFqdn
-          path: '/health'
-          interval: 30
-          timeout: 30
-          unhealthyThreshold: 3
-          pickHostNameFromBackendHttpSettings: false
-        }
-      }
-    ]
-    webApplicationFirewallConfiguration: {
-      enabled: true
-      firewallMode: 'Detection'
-      ruleSetType: 'OWASP'
-      ruleSetVersion: '3.0'
-    }
-  }
-}
+// resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
+//   name: stackName
+//   location: location
+//   identity: identity
+//   properties: {
+//     sslCertificates: [
+//       {
+//         name: 'appgwcert'
+//         properties: {
+//           keyVaultSecretId: 'https://${keyVaultName}${environment().suffixes.keyvaultDns}/secrets/appgwcert'
+//         }
+//       }
+//     ]
+//     sku: {
+//       name: 'WAF_v2'
+//       tier: 'WAF_v2'
+//     }
+//     autoscaleConfiguration: {
+//       minCapacity: 1
+//       maxCapacity: 2
+//     }
+//     gatewayIPConfigurations: [
+//       {
+//         name: 'appGatewayIpConfig'
+//         properties: {
+//           subnet: {
+//             id: subnetId
+//           }
+//         }
+//       }
+//     ]
+//     frontendIPConfigurations: [
+//       {
+//         name: 'appGwPublicFrontendIp'
+//         properties: {
+//           publicIPAddress: {
+//             id: appGwIP.id
+//           }
+//         }
+//       }
+//     ]
+//     frontendPorts: [
+//       {
+//         name: 'port_https'
+//         properties: {
+//           port: 443
+//         }
+//       }
+//     ]
+//     backendAddressPools: [
+//       {
+//         name: 'customer-service'
+//         properties: {
+//           backendAddresses: [
+//             {
+//               fqdn: csappsiteFqdn
+//             }
+//           ]
+//         }
+//       }
+//     ]
+//     backendHttpSettingsCollection: [
+//       {
+//         name: 'customer-service-app-https-setting'
+//         properties: {
+//           port: 443
+//           protocol: 'Https'
+//           cookieBasedAffinity: 'Disabled'
+//           hostName: csappsiteFqdn
+//           pickHostNameFromBackendAddress: false
+//           affinityCookieName: 'ApplicationGatewayAffinity'
+//           requestTimeout: 20
+//           probe: {
+//             id: '${appGwId}/probes/customer-service-app-https-setting-probe'
+//           }
+//         }
+//       }
+//     ]
+//     httpListeners: [
+//       {
+//         name: 'customer-service-app'
+//         properties: {
+//           frontendIPConfiguration: {
+//             id: '${appGwId}/frontendIPConfigurations/appGwPublicFrontendIp'
+//           }
+//           frontendPort: {
+//             id: '${appGwId}/frontendPorts/port_https'
+//           }
+//           protocol: 'Https'
+//           sslCertificate: {
+//             id: '${appGwId}/sslCertificates/appgwcert'
+//           }
+//         }
+//       }
+//     ]
+//     requestRoutingRules: [
+//       {
+//         name: 'frontend-to-customer-service-app'
+//         properties: {
+//           ruleType: 'Basic'
+//           httpListener: {
+//             id: '${appGwId}/httpListeners/customer-service-app'
+//           }
+//           backendAddressPool: {
+//             id: '${appGwId}/backendAddressPools/customer-service'
+//           }
+//           backendHttpSettings: {
+//             id: '${appGwId}/backendHttpSettingsCollection/customer-service-app-https-setting'
+//           }
+//         }
+//       }
+//     ]
+//     probes: [
+//       {
+//         name: 'customer-service-app-https-setting-probe'
+//         properties: {
+//           protocol: 'Https'
+//           host: csappsiteFqdn
+//           path: '/health'
+//           interval: 30
+//           timeout: 30
+//           unhealthyThreshold: 3
+//           pickHostNameFromBackendHttpSettings: false
+//         }
+//       }
+//     ]
+//     webApplicationFirewallConfiguration: {
+//       enabled: true
+//       firewallMode: 'Detection'
+//       ruleSetType: 'OWASP'
+//       ruleSetVersion: '3.0'
+//     }
+//   }
+// }
 
 var frontendEndpointName = '${stackName}-azurefd-net'
 var backendPoolName = 'customer-service-backend-pool'
@@ -1221,7 +1195,6 @@ var frontdoorFqdn = '${stackName}.azurefd.net'
 resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdoor == 'true') {
   name: stackName
   location: 'global'
-  tags: tags
   properties: {
     healthProbeSettings: [
       {
@@ -1307,7 +1280,6 @@ resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdo
 resource apim 'Microsoft.ApiManagement/service@2021-01-01-preview' = if (enableAPIM == 'true') {
   name: stackName
   location: location
-  tags: tags
   sku: {
     name: 'Developer'
     capacity: 1
