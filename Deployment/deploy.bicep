@@ -154,8 +154,8 @@ resource csappsite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'ApplicationInsights_ConnectionString'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -318,8 +318,8 @@ resource mempappsite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'ApplicationInsights_ConnectionString'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -475,8 +475,8 @@ resource altidappsite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'ApplicationInsights_ConnectionString'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -587,8 +587,8 @@ resource membersvcappsite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'ApplicationInsights_ConnectionString'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -703,8 +703,8 @@ resource pointsapisite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'ApplicationInsights_ConnectionString'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -815,8 +815,8 @@ resource partapiappsite 'Microsoft.Web/sites@2022-03-01' = {
       ]
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'ApplicationInsights_ConnectionString'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -960,8 +960,8 @@ resource backendfuncapp 'Microsoft.Web/sites@2022-03-01' = {
       webSocketsEnabled: true
       appSettings: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appinsights.properties.InstrumentationKey
+          name: 'ApplicationInsights_ConnectionString'
+          value: appinsights.properties.ConnectionString
         }
         {
           name: 'DbSource'
@@ -1352,7 +1352,7 @@ resource apimlogger 'Microsoft.ApiManagement/service/loggers@2021-04-01-preview'
   properties: {
     loggerType: 'applicationInsights'
     credentials: {
-      instrumentationKey: appinsights.properties.InstrumentationKey
+      instrumentationKey: appinsights.properties.ConnectionString
     }
     resourceId: appinsights.id
   }
