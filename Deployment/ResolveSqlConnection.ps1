@@ -27,14 +27,6 @@ $SqlUsername = $sqlSv.administratorLogin
 $db = $all | Where-Object { $_.type -eq 'Microsoft.Sql/servers/databases' }
 $dbNameParts = $db.name.Split('/')
 $DbName = $dbNameParts[1]
-
-$platformRes = (az resource list --tag ard-resource-id=shared-key-vault | ConvertFrom-Json)
-if (!$platformRes) {
-    throw "Unable to find eligible shared key vault resource!"
-}
-if ($platformRes.Length -eq 0) {
-    throw "Unable to find 'ANY' eligible resource!"
-}
     
 $kv = (az resource list --tag ard-resource-id=shared-key-vault | ConvertFrom-Json)
 if (!$kv) {
