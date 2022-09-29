@@ -27,10 +27,10 @@ $sqlPassword = (az keyvault secret show -n contoso-customer-service-sql-password
 Write-Host "::set-output name=sqlPassword::$sqlPassword"
 
 # Also resolve managed identity to use
-$mid = (az identity list -g $appResourceGroup | ConvertFrom-Json).id
+$mid = (az identity list -g $sharedResourceGroup | ConvertFrom-Json).id
 Write-Host "::set-output name=managedIdentityId::$mid"
 if ($LastExitCode -ne 0) {
-    throw "An error has occured. Unable to get managed identity from rg."
+    throw "An error has occured. Unable to get managed identity from shared rg."
 }
 
 $config = (az resource list --tag ard-resource-id=shared-app-configuration | ConvertFrom-Json)
