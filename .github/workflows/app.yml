@@ -9,7 +9,7 @@ on:
         required: false
         default: 'default'
 env:
-  APP_VERSION: 'v6.2-dev'
+  APP_VERSION: 'v6.2'
   ARD_SOLUTION_ID_TAG: 'app-service-demo'
 
 jobs:
