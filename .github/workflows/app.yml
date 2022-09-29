@@ -9,7 +9,7 @@ on:
         required: false
         default: 'default'
 env:
-  APP_VERSION: 'v6.1-dev'
+  APP_VERSION: 'v6.2-dev'
   ARD_SOLUTION_ID_TAG: 'app-service-demo'
 
 jobs:
@@ -48,12 +48,6 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: true
 
-      - id: removedevresources
-        if: needs.setup.outputs.build_env == 'prod'
-        name: Remove Dev Resources
-        run: |
-          .\Deployment\RemoveDevResources.ps1 -ArdSolutionId ${{ env.ARD_SOLUTION_ID_TAG }}
-
       - id: resolve-shared-resources
         name: Resolve shared resources
         working-directory: .\deployment
@@ -80,6 +74,7 @@ jobs:
             buildAccountName=${{ steps.resolve-shared-resources.outputs.buildAccountName }}
             buildAccountResourceId=${{ steps.resolve-shared-resources.outputs.buildAccountResourceId }}
             appVersion=${{ env.APP_VERSION }}
+            deploySuffix=${{ needs.setup.outputs.build_env }}-${{ github.run_number }}
 
       - id: resolve-sql-connectionstring
         name: Resolve SQL connection string
