@@ -36,11 +36,10 @@ if ($platformRes.Length -eq 0) {
     throw "Unable to find 'ANY' eligible resource!"
 }
     
-$kv = ($platformRes | Where-Object { $_.tags.'ard-environment' -eq "prod" })
+$kv = (az resource list --tag ard-resource-id=shared-key-vault | ConvertFrom-Json)
 if (!$kv) {
-    throw "Unable to find resource $ArdSolutionId by environment!"
+    throw "Unable to find eligible shared key vault resource!"
 }
-
 $kvName = $kv.name
 
 $sqlPassword = (az keyvault secret show -n contoso-customer-service-sql-password --vault-name $kvName --query value | ConvertFrom-Json)
@@ -48,17 +47,9 @@ $sqlConnectionString = "Server=$SqlServer;Initial Catalog=$DbName; User Id=$SqlU
 Write-Host "::set-output name=sqlConnectionString::$sqlConnectionString"
 
 # Deploy specfic version of SQL script
-$platformRes = (az resource list --tag ard-resource-id=shared-storage | ConvertFrom-Json)
-if (!$platformRes) {
-    throw "Unable to find eligible shared storage resource!"
-}
-if ($platformRes.Length -eq 0) {
-    throw "Unable to find 'ANY' eligible resource!"
-}
-    
-$strs = ($platformRes | Where-Object { $_.tags.'ard-environment' -eq "prod" })
+$strs = (az resource list --tag ard-resource-id=shared-storage | ConvertFrom-Json)
 if (!$strs) {
-    throw "Unable to find resource $ArdSolutionId by environment!"
+    throw "Unable to find eligible platform storage account!"
 }
 
 $BuildAccountName = $strs.name
