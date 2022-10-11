@@ -13,6 +13,7 @@ param buildAccountName string
 param buildAccountResourceId string
 param utc string = utcNow()
 param deploySuffix string
+param gwHostName string
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -256,7 +257,7 @@ resource csappsite 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'OverrideAuthRedirectHostName'
-          value: (enableAppGateway == 'true') ? 'https://demo.contoso.com/signin-oidc' : (enableFrontdoor == 'true') ? 'https://${frontdoorFqdn}/signin-oidc' : ''
+          value: (enableAppGateway == 'true') ? 'https://${gwHostName}/signin-oidc' : (enableFrontdoor == 'true') ? 'https://${frontdoorFqdn}/signin-oidc' : ''
         }
       ]
     }
