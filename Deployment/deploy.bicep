@@ -34,7 +34,7 @@ resource appinsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-resource str 'Microsoft.Storage/storageAccounts@2021-04-01' = {
+resource str 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: stackName
   location: location
   kind: 'StorageV2'
@@ -48,13 +48,13 @@ resource str 'Microsoft.Storage/storageAccounts@2021-04-01' = {
 
 var strConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${stackName};AccountKey=${listKeys(str.id, str.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
 
-resource strqueue 'Microsoft.Storage/storageAccounts/queueServices@2021-04-01' = {
+resource strqueue 'Microsoft.Storage/storageAccounts/queueServices@2022-05-01' = {
   name: 'default'
   parent: str
 }
 
 var queueName = 'orders'
-resource strqueuename 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-04-01' = {
+resource strqueuename 'Microsoft.Storage/storageAccounts/queueServices/queues@2022-05-01' = {
   name: queueName
   parent: strqueue
 }
@@ -63,7 +63,7 @@ var sqlUsername = 'app'
 
 //https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/key-vault-parameter?tabs=azure-cli#use-getsecret-function
 
-resource kv 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: keyVaultName
   scope: resourceGroup(subscription().subscriptionId, sharedResourceGroup)
 }
@@ -80,7 +80,7 @@ module sql './sql.bicep' = {
 var appPlanName = 'S1'
 // Customer service website
 var webapp = '${stackName}web'
-resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
+resource webappplan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: webapp
   location: location
   sku: {
