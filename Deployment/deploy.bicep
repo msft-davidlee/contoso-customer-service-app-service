@@ -1136,14 +1136,14 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
         name: 'customer-service-app'
         properties: {
           frontendIPConfiguration: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', 'appGwPublicFrontendIp')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', stackName, 'appGwPublicFrontendIp')
           }
           frontendPort: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', 'port_https')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', stackName, 'port_https')
           }
           protocol: 'Https'
           sslCertificate: {
-            id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', 'appgwcert')
+            id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', stackName, 'appgwcert')
           }
         }
       }
