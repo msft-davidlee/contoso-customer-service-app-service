@@ -1154,13 +1154,13 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
         properties: {
           ruleType: 'Basic'
           httpListener: {
-            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', 'customer-service-app')
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', stackName, 'customer-service-app')
           }
           backendAddressPool: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', 'customer-service')
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', stackName, 'customer-service')
           }
           backendHttpSettings: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', 'customer-service-app-https-setting')
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', stackName, 'customer-service-app-https-setting')
           }
         }
       }
