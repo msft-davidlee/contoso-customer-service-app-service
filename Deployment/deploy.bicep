@@ -1126,7 +1126,7 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
           affinityCookieName: 'ApplicationGatewayAffinity'
           requestTimeout: 20
           probe: {
-            id: resourceId('Microsoft.Network/applicationGateways/probes', 'customer-service-app-https-setting-probe')
+            id: resourceId('Microsoft.Network/applicationGateways/probes', stackName, 'customer-service-app-https-setting-probe')
           }
         }
       }
