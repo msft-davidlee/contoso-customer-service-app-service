@@ -69,6 +69,12 @@ if (!$vnet) {
 $vnetRg = $vnet.resourceGroup
 $vnetName = $vnet.name
 
+$pip = $networks | Where-Object { $_.type -eq "Microsoft.Network/publicIPAddresses" -and $_.tags.'ard-environment' -eq "prod" }
+$pipName = $pip.name
+$appGwIPResourceGroupName = $pip.resourceGroup
+Write-Host "::set-output name=appGwIPName::$pipName"
+Write-Host "::set-output name=appGwIPResourceGroupName::$appGwIPResourceGroupName"
+
 $subnets = (az network vnet subnet list -g $vnetRg --vnet-name $vnetName | ConvertFrom-Json)
 if (!$subnets) {
     throw "Unable to find eligible Subnets from Virtual Network $vnetName!"

@@ -1036,19 +1036,12 @@ output sqlserver string = sql.outputs.sqlFqdn
 output sqlusername string = sqlUsername
 output dbname string = sql.outputs.dbName
 
-resource appGwIP 'Microsoft.Network/publicIPAddresses@2022-01-01' = if (enableAppGateway == 'true') {
-  name: stackName
-  location: location
-  properties: {
-    publicIPAllocationMethod: 'Static'
-    dnsSettings: {
-      domainNameLabel: 'contoso-customer-service-${stackName}'
-    }
-  }
-  sku: {
-    name: 'Standard'
-    tier: 'Regional'
-  }
+param appGwIPName string
+param appGwIPResourceGroupName string
+
+resource appGwIP 'Microsoft.Network/publicIPAddresses@2022-05-01' existing = if (enableAppGateway == 'true') {
+  name: appGwIPName
+  scope: resourceGroup(appGwIPResourceGroupName)
 }
 
 var csappsiteFqdn = '${csapp}.azurewebsites.net'
