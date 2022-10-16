@@ -34,6 +34,10 @@ Follow the steps below if you want to have Azure Application Gateway as part of 
 6. Review this [setup step](https://learn.microsoft.com/en-us/azure/application-gateway/configure-web-app?tabs=customdomain%2Cazure-portal) and follow the custom domain recommendation. TL;DR: Ensure your customer service app is configured with your sub-domain name, and upload your SSL cert there as well. This means both your Application Gateway and customer service app are configured with the same domain name.
 7. Ensure your AAD App Registration is configured with this sub-domain name. Be sure to append /signin-odic as part of the path.
 
+#### Troubleshooting
+
+1. It may take several minutes before health check is completed. Please review health checks on both App Service and Application Gateway before initiaing the demo.
+
 ### Deploying Frontdoor
 
 If you are deploying Frontdoor. Frontdoor by already has its domain name with SSL cert and that's what we will be using. 
