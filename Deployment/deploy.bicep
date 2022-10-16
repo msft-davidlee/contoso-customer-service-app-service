@@ -1047,7 +1047,7 @@ resource appGwIP 'Microsoft.Network/publicIPAddresses@2022-05-01' existing = if 
 
 var csappsiteFqdn = '${csapp}.azurewebsites.net'
 
-resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
+resource appGw 'Microsoft.Network/applicationGateways@2022-05-01' = if (enableAppGateway == 'true') {
   name: stackName
   location: location
   identity: identity
@@ -1185,7 +1185,7 @@ var frontendEndpointName = '${stackName}-azurefd-net'
 var backendPoolName = 'customer-service-backend-pool'
 var frontdoorFqdn = '${stackName}.azurefd.net'
 
-resource frontdoor 'Microsoft.Network/frontDoors@2020-05-01' = if (enableFrontdoor == 'true') {
+resource frontdoor 'Microsoft.Network/frontDoors@2021-06-01' = if (enableFrontdoor == 'true') {
   name: stackName
   location: 'global'
   properties: {

@@ -37,10 +37,13 @@ Follow the steps below if you want to have Azure Application Gateway as part of 
 #### Troubleshooting
 
 1. It may take several minutes before health check is completed. Please review health checks on both App Service and Application Gateway before initiaing the demo.
+2. If the Application Gateway continues to be unhealthy after you have configured the customer service app, you may need to reset the health probe of the Application Gateway by performing a save on the Application Gateway settings.
 
 ### Deploying Frontdoor
 
-If you are deploying Frontdoor. Frontdoor by already has its domain name with SSL cert and that's what we will be using. 
+Follow the steps below if you want to have Azure Application Gateway as part of your demo.
+
+1. Register a domain name.
 
 After that, in the App Configuration, you will need to configure the follow to enable Frontdoor.
 
