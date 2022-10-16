@@ -13,6 +13,7 @@ param buildAccountName string
 param buildAccountResourceId string
 param utc string = utcNow()
 param deploySuffix string
+param gwHostName string
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -1162,7 +1163,7 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
         name: 'customer-service-app-https-setting-probe'
         properties: {
           protocol: 'Https'
-          host: csappsiteFqdn
+          host: gwHostName
           path: '/health'
           interval: 30
           timeout: 30
