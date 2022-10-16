@@ -34,7 +34,7 @@ resource appinsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-resource str 'Microsoft.Storage/storageAccounts@2021-04-01' = {
+resource str 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: stackName
   location: location
   kind: 'StorageV2'
@@ -48,13 +48,13 @@ resource str 'Microsoft.Storage/storageAccounts@2021-04-01' = {
 
 var strConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${stackName};AccountKey=${listKeys(str.id, str.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
 
-resource strqueue 'Microsoft.Storage/storageAccounts/queueServices@2021-04-01' = {
+resource strqueue 'Microsoft.Storage/storageAccounts/queueServices@2022-05-01' = {
   name: 'default'
   parent: str
 }
 
 var queueName = 'orders'
-resource strqueuename 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-04-01' = {
+resource strqueuename 'Microsoft.Storage/storageAccounts/queueServices/queues@2022-05-01' = {
   name: queueName
   parent: strqueue
 }
@@ -63,7 +63,7 @@ var sqlUsername = 'app'
 
 //https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/key-vault-parameter?tabs=azure-cli#use-getsecret-function
 
-resource kv 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: keyVaultName
   scope: resourceGroup(subscription().subscriptionId, sharedResourceGroup)
 }
@@ -80,7 +80,7 @@ module sql './sql.bicep' = {
 var appPlanName = 'S1'
 // Customer service website
 var webapp = '${stackName}web'
-resource webappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
+resource webappplan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: webapp
   location: location
   sku: {
@@ -256,7 +256,7 @@ resource csappsite 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'OverrideAuthRedirectHostName'
-          value: (enableAppGateway == 'true') ? 'https://demo.contoso.com/signin-oidc' : (enableFrontdoor == 'true') ? 'https://${frontdoorFqdn}/signin-oidc' : ''
+          value: (enableFrontdoor == 'true') ? 'https://${frontdoorFqdn}/signin-oidc' : ''
         }
       ]
     }
@@ -1036,158 +1036,149 @@ output sqlserver string = sql.outputs.sqlFqdn
 output sqlusername string = sqlUsername
 output dbname string = sql.outputs.dbName
 
-resource appGwIP 'Microsoft.Network/publicIPAddresses@2022-01-01' = if (enableAppGateway == 'true') {
-  name: stackName
-  location: location
-  properties: {
-    publicIPAllocationMethod: 'Static'
-    dnsSettings: {
-      domainNameLabel: 'contoso-customer-service-${stackName}'
-    }
-  }
-  sku: {
-    name: 'Standard'
-    tier: 'Regional'
-  }
+param appGwIPName string
+param appGwIPResourceGroupName string
+
+resource appGwIP 'Microsoft.Network/publicIPAddresses@2022-05-01' existing = if (enableAppGateway == 'true') {
+  name: appGwIPName
+  scope: resourceGroup(appGwIPResourceGroupName)
 }
 
 var csappsiteFqdn = '${csapp}.azurewebsites.net'
-// var appGwId = resourceId('Microsoft.Network/applicationGateways', stackName)
 
-// resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
-//   name: stackName
-//   location: location
-//   identity: identity
-//   properties: {
-//     sslCertificates: [
-//       {
-//         name: 'appgwcert'
-//         properties: {
-//           keyVaultSecretId: 'https://${keyVaultName}${environment().suffixes.keyvaultDns}/secrets/appgwcert'
-//         }
-//       }
-//     ]
-//     sku: {
-//       name: 'WAF_v2'
-//       tier: 'WAF_v2'
-//     }
-//     autoscaleConfiguration: {
-//       minCapacity: 1
-//       maxCapacity: 2
-//     }
-//     gatewayIPConfigurations: [
-//       {
-//         name: 'appGatewayIpConfig'
-//         properties: {
-//           subnet: {
-//             id: subnetId
-//           }
-//         }
-//       }
-//     ]
-//     frontendIPConfigurations: [
-//       {
-//         name: 'appGwPublicFrontendIp'
-//         properties: {
-//           publicIPAddress: {
-//             id: appGwIP.id
-//           }
-//         }
-//       }
-//     ]
-//     frontendPorts: [
-//       {
-//         name: 'port_https'
-//         properties: {
-//           port: 443
-//         }
-//       }
-//     ]
-//     backendAddressPools: [
-//       {
-//         name: 'customer-service'
-//         properties: {
-//           backendAddresses: [
-//             {
-//               fqdn: csappsiteFqdn
-//             }
-//           ]
-//         }
-//       }
-//     ]
-//     backendHttpSettingsCollection: [
-//       {
-//         name: 'customer-service-app-https-setting'
-//         properties: {
-//           port: 443
-//           protocol: 'Https'
-//           cookieBasedAffinity: 'Disabled'
-//           hostName: csappsiteFqdn
-//           pickHostNameFromBackendAddress: false
-//           affinityCookieName: 'ApplicationGatewayAffinity'
-//           requestTimeout: 20
-//           probe: {
-//             id: '${appGwId}/probes/customer-service-app-https-setting-probe'
-//           }
-//         }
-//       }
-//     ]
-//     httpListeners: [
-//       {
-//         name: 'customer-service-app'
-//         properties: {
-//           frontendIPConfiguration: {
-//             id: '${appGwId}/frontendIPConfigurations/appGwPublicFrontendIp'
-//           }
-//           frontendPort: {
-//             id: '${appGwId}/frontendPorts/port_https'
-//           }
-//           protocol: 'Https'
-//           sslCertificate: {
-//             id: '${appGwId}/sslCertificates/appgwcert'
-//           }
-//         }
-//       }
-//     ]
-//     requestRoutingRules: [
-//       {
-//         name: 'frontend-to-customer-service-app'
-//         properties: {
-//           ruleType: 'Basic'
-//           httpListener: {
-//             id: '${appGwId}/httpListeners/customer-service-app'
-//           }
-//           backendAddressPool: {
-//             id: '${appGwId}/backendAddressPools/customer-service'
-//           }
-//           backendHttpSettings: {
-//             id: '${appGwId}/backendHttpSettingsCollection/customer-service-app-https-setting'
-//           }
-//         }
-//       }
-//     ]
-//     probes: [
-//       {
-//         name: 'customer-service-app-https-setting-probe'
-//         properties: {
-//           protocol: 'Https'
-//           host: csappsiteFqdn
-//           path: '/health'
-//           interval: 30
-//           timeout: 30
-//           unhealthyThreshold: 3
-//           pickHostNameFromBackendHttpSettings: false
-//         }
-//       }
-//     ]
-//     webApplicationFirewallConfiguration: {
-//       enabled: true
-//       firewallMode: 'Detection'
-//       ruleSetType: 'OWASP'
-//       ruleSetVersion: '3.0'
-//     }
-//   }
-// }
+resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAppGateway == 'true') {
+  name: stackName
+  location: location
+  identity: identity
+  properties: {
+    sslCertificates: [
+      {
+        name: 'appgwcert'
+        properties: {
+          keyVaultSecretId: 'https://${keyVaultName}${environment().suffixes.keyvaultDns}/secrets/appgwcert'
+        }
+      }
+    ]
+    sku: {
+      name: 'WAF_v2'
+      tier: 'WAF_v2'
+    }
+    autoscaleConfiguration: {
+      minCapacity: 1
+      maxCapacity: 2
+    }
+    gatewayIPConfigurations: [
+      {
+        name: 'appGatewayIpConfig'
+        properties: {
+          subnet: {
+            id: subnetId
+          }
+        }
+      }
+    ]
+    frontendIPConfigurations: [
+      {
+        name: 'appGwPublicFrontendIp'
+        properties: {
+          publicIPAddress: {
+            id: appGwIP.id
+          }
+        }
+      }
+    ]
+    frontendPorts: [
+      {
+        name: 'port_https'
+        properties: {
+          port: 443
+        }
+      }
+    ]
+    backendAddressPools: [
+      {
+        name: 'customer-service'
+        properties: {
+          backendAddresses: [
+            {
+              fqdn: csappsiteFqdn
+            }
+          ]
+        }
+      }
+    ]
+    backendHttpSettingsCollection: [
+      {
+        name: 'customer-service-app-https-setting'
+        properties: {
+          port: 443
+          protocol: 'Https'
+          cookieBasedAffinity: 'Disabled'
+          pickHostNameFromBackendAddress: false
+          affinityCookieName: 'ApplicationGatewayAffinity'
+          requestTimeout: 20
+          probe: {
+            id: resourceId('Microsoft.Network/applicationGateways/probes', stackName, 'customer-service-app-https-setting-probe')
+          }
+        }
+      }
+    ]
+    httpListeners: [
+      {
+        name: 'customer-service-app'
+        properties: {
+          frontendIPConfiguration: {
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', stackName, 'appGwPublicFrontendIp')
+          }
+          frontendPort: {
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', stackName, 'port_https')
+          }
+          protocol: 'Https'
+          sslCertificate: {
+            id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', stackName, 'appgwcert')
+          }
+        }
+      }
+    ]
+    requestRoutingRules: [
+      {
+        name: 'frontend-to-customer-service-app'
+        properties: {
+          ruleType: 'Basic'
+          httpListener: {
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', stackName, 'customer-service-app')
+          }
+          backendAddressPool: {
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', stackName, 'customer-service')
+          }
+          backendHttpSettings: {
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', stackName, 'customer-service-app-https-setting')
+          }
+        }
+      }
+    ]
+    probes: [
+      {
+        name: 'customer-service-app-https-setting-probe'
+        properties: {
+          protocol: 'Https'
+          host: csappsiteFqdn
+          path: '/health'
+          interval: 30
+          timeout: 30
+          unhealthyThreshold: 3
+          pickHostNameFromBackendHttpSettings: false
+        }
+      }
+    ]
+    webApplicationFirewallConfiguration: {
+      enabled: true
+      firewallMode: 'Detection'
+      ruleSetType: 'OWASP'
+      ruleSetVersion: '3.0'
+    }
+  }
+}
 
 var frontendEndpointName = '${stackName}-azurefd-net'
 var backendPoolName = 'customer-service-backend-pool'

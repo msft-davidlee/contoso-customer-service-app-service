@@ -75,6 +75,8 @@ jobs:
             buildAccountResourceId=${{ steps.resolve-shared-resources.outputs.buildAccountResourceId }}
             appVersion=${{ env.APP_VERSION }}
             deploySuffix=${{ needs.setup.outputs.build_env }}-${{ github.run_number }}
+            appGwIPName=${{ steps.resolve-shared-resources.outputs.appGwIPName }}
+            appGwIPResourceGroupName=${{ steps.resolve-shared-resources.outputs.appGwIPResourceGroupName }}
 
       - id: resolve-sql-connectionstring
         name: Resolve SQL connection string

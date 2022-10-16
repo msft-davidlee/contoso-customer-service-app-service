@@ -57,30 +57,34 @@ if ($LastExitCode -ne 0) {
 }
 Write-Host "::set-output name=enableAPIM::$enableAPIM"
 
-# $platformRes = (az resource list --tag stack-name=platform | ConvertFrom-Json)
-# if (!$platformRes) {
-#     throw "Unable to find eligible networking resource!"
-# }
-# if ($platformRes.Length -eq 0) {
-#     throw "Unable to find 'ANY' eligible networking resource!"
-# }
-# $vnet = ($platformRes | Where-Object { $_.type -eq "Microsoft.Network/virtualNetworks" -and $_.name.Contains("-pri-") -and $_.tags.'stack-environment' -eq $BUILD_ENV })
-# if (!$vnet) {
-#     throw "Unable to find Virtual Network resource!"
-# }
-# $vnetRg = $vnet.resourceGroup
-# $vnetName = $vnet.name
+$networks = (az resource list --tag ard-solution-id=networking-pri | ConvertFrom-Json)
+if (!$networks) {
+    throw "Unable to find eligible shared key vault resource!"
+}
 
-# $subnets = (az network vnet subnet list -g $vnetRg --vnet-name $vnetName | ConvertFrom-Json)
-# if (!$subnets) {
-#     throw "Unable to find eligible Subnets from Virtual Network $vnetName!"
-# }          
-# $subnetId = ($subnets | Where-Object { $_.name -eq "appgw" }).id
-# if (!$subnetId) {
-#     throw "Unable to find default Subnet resource!"
-# }
+$vnet = ($networks | Where-Object { $_.type -eq "Microsoft.Network/virtualNetworks" -and $_.tags.'ard-environment' -eq $BUILD_ENV })
+if (!$vnet) {
+    throw "Unable to find Virtual Network resource!"
+}
+$vnetRg = $vnet.resourceGroup
+$vnetName = $vnet.name
 
-# Write-Host "::set-output name=subnetId::$subnetId"
+$pip = $networks | Where-Object { $_.type -eq "Microsoft.Network/publicIPAddresses" -and $_.tags.'ard-environment' -eq "prod" }
+$pipName = $pip.name
+$appGwIPResourceGroupName = $pip.resourceGroup
+Write-Host "::set-output name=appGwIPName::$pipName"
+Write-Host "::set-output name=appGwIPResourceGroupName::$appGwIPResourceGroupName"
+
+$subnets = (az network vnet subnet list -g $vnetRg --vnet-name $vnetName | ConvertFrom-Json)
+if (!$subnets) {
+    throw "Unable to find eligible Subnets from Virtual Network $vnetName!"
+}          
+$subnetId = ($subnets | Where-Object { $_.name -eq "appgw" }).id
+if (!$subnetId) {
+    throw "Unable to find default Subnet resource!"
+}
+
+Write-Host "::set-output name=subnetId::$subnetId"
 
 $strs = (az resource list --tag ard-resource-id=shared-storage | ConvertFrom-Json)
 if (!$strs) {
