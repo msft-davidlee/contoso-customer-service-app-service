@@ -56,17 +56,6 @@ In the App Configuration, you will need to configure the follow to enable APIM.
 | Label | dev or prod |
 | Value | true or false |
 
-### AAD App Registration
-
-Whether you are using Azure Application Gateway or Frontdoor, be sure to register the URLs so that the redirects can happen correctly, otherwise you will get an error from AAD sign-on page.
-
-### Secrets
-
-| Name | Comments |
-| --- | --- |
-| MS_AZURE_CREDENTIALS | <pre>{<br/>&nbsp;&nbsp;&nbsp;&nbsp;"clientId": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"clientSecret": "", <br/>&nbsp;&nbsp;&nbsp;&nbsp;"subscriptionId": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"tenantId": "" <br/>}</pre> |
-| PREFIX | mytodos - or whatever name you would like for all your resources |
-
 ## Have an issue?
 
 You are welcome to create an issue if you need help but please note that there is no timeline to answer or resolve any issues you have with the contents of this project. Use the contents of this project at your own risk! If you are interested to volunteer to maintain this, please feel free to reach out to be added as a contributor and send Pull Requests.

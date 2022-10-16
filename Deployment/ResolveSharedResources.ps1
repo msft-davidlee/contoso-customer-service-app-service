@@ -45,6 +45,12 @@ if ($LastExitCode -ne 0) {
 }
 Write-Host "::set-output name=enableAppGateway::$enableAppGateway"
 
+$gwHostName = (az appconfig kv show -n $configName --key "$ArdSolutionId/app-gateway/hostname" --label $BUILD_ENV --auth-mode login | ConvertFrom-Json).value
+if ($LastExitCode -ne 0) {
+    throw "An error has occured. Unable to get app-gateway/hostname value from $configName."
+}
+Write-Host "::set-output name=gwHostName::$gwHostName"
+
 $enableFrontdoor = (az appconfig kv show -n $configName --key "$ArdSolutionId/deployment-flags/enable-frontdoor" --label $BUILD_ENV --auth-mode login | ConvertFrom-Json).value
 if ($LastExitCode -ne 0) {
     throw "An error has occured. Unable to get enable-frontdoor flag from $configName."
