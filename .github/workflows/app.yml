@@ -77,7 +77,6 @@ jobs:
             deploySuffix=${{ needs.setup.outputs.build_env }}-${{ github.run_number }}
             appGwIPName=${{ steps.resolve-shared-resources.outputs.appGwIPName }}
             appGwIPResourceGroupName=${{ steps.resolve-shared-resources.outputs.appGwIPResourceGroupName }}
-            gwHostName=${{ steps.resolve-shared-resources.outputs.gwHostName }}
 
       - id: resolve-sql-connectionstring
         name: Resolve SQL connection string

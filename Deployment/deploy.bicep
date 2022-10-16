@@ -13,7 +13,6 @@ param buildAccountName string
 param buildAccountResourceId string
 param utc string = utcNow()
 param deploySuffix string
-param gwHostName string
 
 var stackName = '${prefix}${appEnvironment}'
 
@@ -257,7 +256,7 @@ resource csappsite 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'OverrideAuthRedirectHostName'
-          value: (enableAppGateway == 'true') ? 'https://${gwHostName}/signin-oidc' : (enableFrontdoor == 'true') ? 'https://${frontdoorFqdn}/signin-oidc' : ''
+          value: (enableFrontdoor == 'true') ? 'https://${frontdoorFqdn}/signin-oidc' : ''
         }
       ]
     }
@@ -1115,8 +1114,7 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
           port: 443
           protocol: 'Https'
           cookieBasedAffinity: 'Disabled'
-          hostName: csappsiteFqdn
-          pickHostNameFromBackendAddress: false
+          pickHostNameFromBackendAddress: true
           affinityCookieName: 'ApplicationGatewayAffinity'
           requestTimeout: 20
           probe: {
