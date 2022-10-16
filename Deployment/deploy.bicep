@@ -1114,7 +1114,7 @@ resource appGw 'Microsoft.Network/applicationGateways@2021-05-01' = if (enableAp
           port: 443
           protocol: 'Https'
           cookieBasedAffinity: 'Disabled'
-          pickHostNameFromBackendAddress: true
+          pickHostNameFromBackendAddress: false
           affinityCookieName: 'ApplicationGatewayAffinity'
           requestTimeout: 20
           probe: {
