@@ -1341,7 +1341,7 @@ resource apimlogger 'Microsoft.ApiManagement/service/loggers@2021-12-01-preview'
   properties: {
     loggerType: 'applicationInsights'
     credentials: {
-      instrumentationKey: appinsights.properties.ConnectionString
+      instrumentationKey: appinsights.properties.InstrumentationKey
     }
     resourceId: appinsights.id
   }
