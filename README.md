@@ -24,34 +24,38 @@ Follow the steps below to create this demo.
 
 ### Deploying Azure Application Gateway
 
-Follow the steps below if you want to have Azure Application Gateway as part of your demo.
+Follow the steps below if you want to have Azure Application Gateway as part of your demo. You should NOT deploy Azure Front Door in this setup.
 
 1. Register a domain name.
-2. Create 1 sub-domain name for the customer service app with an A record pointing to the public IP. Use the following command to lookup the public IP ``` $list = (az resource list --tag ard-solution-id=networking-pri | ConvertFrom-Json); $ip = $list | Where-Object { $_.type -eq "microsoft.network/publicipaddresses" }; az network public-ip show --ids $ip.id --query "ipAddress" -o tsv ```
+2. Create a sub-domain name for the customer service app with an A record pointing to the public IP. Use the following command to lookup the public IP ``` $list = (az resource list --tag ard-solution-id=networking-pri | ConvertFrom-Json); $ip = $list | Where-Object { $_.type -eq "microsoft.network/publicipaddresses" }; az network public-ip show --ids $ip.id --query "ipAddress" -o tsv ```
 3. Create a SSL certifcate for your sub-domain name. There is a free option using [Let’s Encrypt](https://letsencrypt.org/).
 4. Upload the SSL certifcate into your shared Azure Key Vault instance created as part of the [governance](https://github.com/msft-davidlee/contoso-governance) setup step. Name the cert appgwcert.
 5. Enable Azure Application Gateway deployment option in your shared Azure App Configuration created as part of the [governance](https://github.com/msft-davidlee/contoso-governance) setup step. Use key ``` contoso-customer-service-app-service/deployment-flags/enable-app-gateway ``` with 2 labels dev or prod and value of true to create or false to disable.
-6. Review this [setup step](https://learn.microsoft.com/en-us/azure/application-gateway/configure-web-app?tabs=customdomain%2Cazure-portal) and follow the custom domain recommendation. TL;DR: Ensure your customer service app is configured with your sub-domain name, and upload your SSL cert there as well. This means both your Application Gateway and customer service app are configured with the same domain name.
-7. Ensure your AAD App Registration is configured with this sub-domain name. Be sure to append /signin-odic as part of the path.
+6. Run GitHub Workflow
+7. Review this [setup step](https://learn.microsoft.com/en-us/azure/application-gateway/configure-web-app?tabs=customdomain%2Cazure-portal) and follow the custom domain recommendation. TL;DR: Ensure your customer service app is configured with your sub-domain name, and upload your SSL cert there as well. This means both your Application Gateway and customer service app are configured with the same domain name.
+8. Ensure your AAD App Registration is configured with this sub-domain name. Be sure to append /signin-odic as part of the path.
 
-#### Troubleshooting
+#### Troubleshooting Azure Application Gateway Deployment
 
 1. It may take several minutes before health check is completed. Please review health checks on both App Service and Application Gateway before initiaing the demo.
 2. If the Application Gateway continues to be unhealthy after you have configured the customer service app, you may need to reset the health probe of the Application Gateway by performing a save on the Application Gateway settings.
 
-### Deploying Frontdoor
+### Deploying Azure Front Door
 
-Follow the steps below if you want to have Azure Application Gateway as part of your demo.
+Follow the steps below if you want to have Azure Front Door as part of your demo. You should NOT deploy Azure Application Gateway in this setup.
 
 1. Register a domain name.
+2. Enable Azure Front Door deployment option in your shared Azure App Configuration created as part of the [governance](https://github.com/msft-davidlee/contoso-governance) setup step. Use key ``` contoso-customer-service-app-service/deployment-flags/enable-frontdoor ``` with 2 labels dev or prod and value of true to create or false to disable.
+3. Run GitHub Workflow
+4. Create a SSL certifcate for your sub-domain name. There is a free option using [Let’s Encrypt](https://letsencrypt.org/).
+5. Create a sub-domain name for the customer service app with CNAME pointing to [frontdoor](https://learn.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain). Choose Certificate management type as Front Door managed (do not attempt to use your existing SSL cert you generated, it will be used later). For more information, see [this](https://learn.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-1-default-use-a-certificate-managed-by-front-door).
+6. Update the routing rule for contoso-customer-app-routing and use the new frontend you have created.
+7. Update backend pools with the hostname as the sub-domain name. Be sure to save all changes.
+8. Ensure your customer service app is configured with your sub-domain name, and upload your SSL cert there as well. This means both your Frontdoor and customer service app are configured with the same domain name.
 
-After that, in the App Configuration, you will need to configure the follow to enable Frontdoor.
+#### Troubleshooting Azure Front Door Deployment
 
-| Name | Comments |
-| --- | --- |
-| Key | contoso-customer-service-app-service/deployment-flags/enable-frontdoor |
-| Label | dev or prod |
-| Value | true or false |
+1. It may take up to an hour before SSL certificate is issued by Azure Front Door on your custom domain name. Make sure an SSL certificate is issued before you proceed with the demo.
 
 ### Deploying APIM
 

@@ -427,10 +427,6 @@ resource mempappsite 'Microsoft.Web/sites@2022-03-01' = {
           name: 'MemberPointsUrl'
           value: 'https://${pointsapi}.azurewebsites.net'
         }
-        {
-          name: 'OverrideAuthRedirectHostName'
-          value: (enableAppGateway == 'true') ? 'https://demo.contoso.com/signin-oidc' : (enableFrontdoor == 'true') ? 'https://${frontdoorFqdn}/signin-oidc' : ''
-        }
       ]
     }
   }
