@@ -1,0 +1,203 @@
+{
+	"info": {
+		"_postman_id": "721674a4-c0df-4ba0-8169-c20efe679869",
+		"name": "Contoso Customer Service Member API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ClientCredentialsFlowFromClient_API_Scopes",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"var obj = pm.response.json();\r",
+							"pm.environment.set(\"token\", obj.access_token)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{ClientId}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{ClientSecret}}",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "api://contoso-cs-rewards-api/.default",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{TenantId}}/oauth2/v2.0/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{TenantId}}",
+						"oauth2",
+						"v2.0",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Member (New API)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"The response has all properties\", () => {\r",
+							"    //parse the response JSON and test three properties\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson[0].memberId).to.eql('1320122100');\r",
+							"    pm.expect(responseJson[0].firstName).to.eql('David');\r",
+							"    pm.expect(responseJson[0].lastName).to.eql('Lee');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "default"
+					},
+					{
+						"key": "Ocp-Apim-Subscription-Key",
+						"value": "{{SubscriptionKey}}",
+						"type": "default"
+					},
+					{
+						"key": "version",
+						"value": "2",
+						"type": "default"
+					}
+				],
+				"url": {
+					"raw": "https://{{apiName}}.azure-api.net/rewards/member/1320122100",
+					"protocol": "https",
+					"host": [
+						"{{apiName}}",
+						"azure-api",
+						"net"
+					],
+					"path": [
+						"rewards",
+						"member",
+						"1320122100"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Member (Legacy)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"The response has all properties\", () => {\r",
+							"    //parse the response JSON and test three properties\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson[0].memberId).to.eql('1320122100');\r",
+							"    pm.expect(responseJson[0].firstName).to.eql('David');\r",
+							"    pm.expect(responseJson[0].lastName).to.eql('Lee');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "default"
+					},
+					{
+						"key": "Ocp-Apim-Subscription-Key",
+						"value": "{{SubscriptionKey}}",
+						"type": "default"
+					},
+					{
+						"key": "version",
+						"value": "1",
+						"type": "default"
+					}
+				],
+				"url": {
+					"raw": "https://{{apiName}}.azure-api.net/rewards/member/854123",
+					"protocol": "https",
+					"host": [
+						"{{apiName}}",
+						"azure-api",
+						"net"
+					],
+					"path": [
+						"rewards",
+						"member",
+						"854123"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
