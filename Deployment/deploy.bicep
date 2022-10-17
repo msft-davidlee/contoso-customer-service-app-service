@@ -433,7 +433,7 @@ resource mempappsite 'Microsoft.Web/sites@2022-03-01' = {
 }
 
 var apiapp = '${stackName}apiapp'
-resource apiappplan 'Microsoft.Web/serverfarms@2021-01-15' = {
+resource apiappplan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: apiapp
   location: location
   sku: {
@@ -1266,7 +1266,7 @@ resource frontdoor 'Microsoft.Network/frontDoors@2021-06-01' = if (enableFrontdo
   }
 }
 
-resource apim 'Microsoft.ApiManagement/service@2021-01-01-preview' = if (enableAPIM == 'true') {
+resource apim 'Microsoft.ApiManagement/service@2021-12-01-preview' = if (enableAPIM == 'true') {
   name: stackName
   location: location
   sku: {
@@ -1279,7 +1279,7 @@ resource apim 'Microsoft.ApiManagement/service@2021-01-01-preview' = if (enableA
   }
 }
 
-resource rewardsapi 'Microsoft.ApiManagement/service/apis@2021-04-01-preview' = if (enableAPIM == 'true') {
+resource rewardsapi 'Microsoft.ApiManagement/service/apis@2021-12-01-preview' = if (enableAPIM == 'true') {
   parent: apim
   name: 'rewards-api'
   properties: {
@@ -1298,7 +1298,7 @@ resource rewardsapi 'Microsoft.ApiManagement/service/apis@2021-04-01-preview' = 
   }
 }
 
-resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations@2021-04-01-preview' = if (enableAPIM == 'true') {
+resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations@2021-12-01-preview' = if (enableAPIM == 'true') {
   parent: rewardsapi
   name: 'rewards-member-lookup'
   properties: {
@@ -1326,7 +1326,7 @@ resource rewardsapiMemberLookup 'Microsoft.ApiManagement/service/apis/operations
 }
 
 var rawValue = replace(loadTextContent('member-lookup.xml'), '%MEMBERSVC%', membersvcapp)
-resource rewardsapiMemberLookupPolicy 'Microsoft.ApiManagement/service/apis/operations/policies@2021-04-01-preview' = if (enableAPIM == 'true') {
+resource rewardsapiMemberLookupPolicy 'Microsoft.ApiManagement/service/apis/operations/policies@2021-12-01-preview' = if (enableAPIM == 'true') {
   parent: rewardsapiMemberLookup
   name: 'policy'
   properties: {
@@ -1335,7 +1335,7 @@ resource rewardsapiMemberLookupPolicy 'Microsoft.ApiManagement/service/apis/oper
   }
 }
 
-resource apimlogger 'Microsoft.ApiManagement/service/loggers@2021-04-01-preview' = if (enableAPIM == 'true') {
+resource apimlogger 'Microsoft.ApiManagement/service/loggers@2021-12-01-preview' = if (enableAPIM == 'true') {
   parent: apim
   name: stackName
   properties: {

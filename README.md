@@ -59,13 +59,8 @@ Follow the steps below if you want to have Azure Front Door as part of your demo
 
 ### Deploying APIM
 
-In the App Configuration, you will need to configure the follow to enable APIM.
-
-| Name | Comments |
-| --- | --- |
-| Key | contoso-customer-service-app-service/deployment-flags/enable-apim |
-| Label | dev or prod |
-| Value | true or false |
+1. Enable APIM deployment option in your shared Azure App Configuration created as part of the [governance](https://github.com/msft-davidlee/contoso-governance) setup step. Use key ``` contoso-customer-service-app-service/deployment-flags/enable-apim ``` with 2 labels dev or prod and value of true to create or false to disable.
+2. Run GitHub Workflow
 
 ## Have an issue?
 
