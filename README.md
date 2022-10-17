@@ -61,6 +61,15 @@ Follow the steps below if you want to have Azure Front Door as part of your demo
 
 1. Enable APIM deployment option in your shared Azure App Configuration created as part of the [governance](https://github.com/msft-davidlee/contoso-governance) setup step. Use key ``` contoso-customer-service-app-service/deployment-flags/enable-apim ``` with 2 labels dev or prod and value of true to create or false to disable.
 2. Run GitHub Workflow
+3. Import the Test\Contoso Customer Service Member API.postman_collection.json into Postman
+4. Create the following environment variables
+
+    * ClientId: See App Registration in AAD
+    * ClientSecret: See App Registration in AAD
+    * TenantId: See AAD properties
+    * SubscriptionKey: See APIM Built-in all-access subscription for key
+    * apiName: See APIM instance name
+5. Run postman collection.
 
 ## Have an issue?
 
