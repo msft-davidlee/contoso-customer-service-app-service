@@ -16,7 +16,7 @@ Follow the steps below to create this demo.
 4. Follow the [application](https://github.com/msft-davidlee/contoso-customer-service-app) steps to create application artifacts.
 5. Create 2 environments, prod and dev and create a secret PREFIX which is used to name your resources with in each environment.
 6. Before running the GitHub workflow, you should review the options below.
-7. To teardown your environment, run ``` .\Deployment\RemoveDevResources.ps1 -ArdSolutionId app-service-demo ```
+7. To teardown your solution, run ``` .\RemoveSolution.ps1 -ArdSolutionId app-service-demo -ArdEnvironment <either dev or prod> ```
 
 ### Deploying directly without a proxy
 
